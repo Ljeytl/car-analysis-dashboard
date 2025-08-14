@@ -1080,9 +1080,9 @@
              
             // Now the hybrids and PHEVs (better TCO due to less depreciation)
             {name: 'Toyota RAV4 Hybrid', price: 30500, depreciation: 15, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid', reliability: 9,
-             fuelCost: 2400, maintenanceCost: 1200, insuranceCost: 600, // Toyota reliability
+             fuelCost: 2400, maintenanceCost: 1200, insuranceCost: 600, founderCredibility: 6, // Toyota reliability
              tco: 30500 * 0.15 + 2400 * 3 + 1200 * 3 + 600 * 3, // 4575 + 7200 + 3600 + 1800 = 17175
-             notes: "Best value - minimal depreciation + Toyota reliability"},
+             notes: "Best value - minimal depreciation + Toyota reliability + outdoor credibility"},
              
             {name: 'Toyota Prius', price: 23000, depreciation: 25, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid', reliability: 9,
              fuelCost: 1800, maintenanceCost: 900, insuranceCost: 600,
@@ -1121,32 +1121,32 @@
              
             // Gas cars (moderate TCO)
             {name: 'Honda Civic (2019)', year: '2019', price: 16000, depreciation: 25, fuel: 'Gas', brand: 'Honda', category: 'Compact', reliability: 9,
-             fuelCost: 3000, maintenanceCost: 1200, insuranceCost: 600,
+             fuelCost: 3000, maintenanceCost: 1200, insuranceCost: 600, founderCredibility: 4,
              tco: 16000 * 0.25 + 3000 * 3 + 1200 * 3 + 600 * 3, // 4000 + 9000 + 3600 + 1800 = 18400
              notes: "2019: Great value, depreciation curve flattened"},
              
             {name: 'Honda Civic (2022)', year: '2022', price: 21000, depreciation: 31, fuel: 'Gas', brand: 'Honda', category: 'Compact', reliability: 9,
-             fuelCost: 3000, maintenanceCost: 1200, insuranceCost: 600,
+             fuelCost: 3000, maintenanceCost: 1200, insuranceCost: 600, founderCredibility: 4,
              tco: 21000 * 0.31 + 3000 * 3 + 1200 * 3 + 600 * 3, // 6510 + 9000 + 3600 + 1800 = 20910
              notes: "2022: Moderate depreciation remaining"},
              
             {name: 'Honda Civic (2024)', year: '2024', price: 28000, depreciation: 35, fuel: 'Gas', brand: 'Honda', category: 'Compact', reliability: 9,
-             fuelCost: 3000, maintenanceCost: 1000, insuranceCost: 600,
+             fuelCost: 3000, maintenanceCost: 1000, insuranceCost: 600, founderCredibility: 4,
              tco: 28000 * 0.35 + 3000 * 3 + 1000 * 3 + 600 * 3, // 9800 + 9000 + 3000 + 1800 = 23600
              notes: "2024: New car premium + full depreciation"},
              
             {name: 'Genesis G70 (2019)', year: '2019', price: 19500, depreciation: 25, fuel: 'Gas', brand: 'Genesis', category: 'Luxury', reliability: 8,
-             fuelCost: 4200, maintenanceCost: 1800, insuranceCost: 900,
+             fuelCost: 4200, maintenanceCost: 1800, insuranceCost: 900, founderCredibility: 7,
              tco: 19500 * 0.25 + 4200 * 3 + 1800 * 3 + 900 * 3, // 4875 + 12600 + 5400 + 2700 = 25575
              notes: "2019: Used luxury sedan, depreciation slowed"},
              
             {name: 'Genesis G70 (2021)', year: '2021', price: 24500, depreciation: 43, fuel: 'Gas', brand: 'Genesis', category: 'Luxury', reliability: 8,
-             fuelCost: 4200, maintenanceCost: 1800, insuranceCost: 900, // Free maintenance first 3 years
+             fuelCost: 4200, maintenanceCost: 1800, insuranceCost: 900, founderCredibility: 7, // Free maintenance first 3 years
              tco: 24500 * 0.43 + 4200 * 3 + 1800 * 3 + 900 * 3, // 10535 + 12600 + 5400 + 2700 = 31235
              notes: "2021: Still depreciating fast + premium fuel"},
              
             {name: 'Genesis G70 (2024)', year: '2024', price: 38000, depreciation: 45, fuel: 'Gas', brand: 'Genesis', category: 'Luxury', reliability: 8,
-             fuelCost: 4200, maintenanceCost: 1200, insuranceCost: 900,
+             fuelCost: 4200, maintenanceCost: 1200, insuranceCost: 900, founderCredibility: 8,
              tco: 38000 * 0.45 + 4200 * 3 + 1200 * 3 + 900 * 3, // 17100 + 12600 + 3600 + 2700 = 36000
              notes: "2024: New luxury sedan with full depreciation hit"},
              
@@ -2215,8 +2215,33 @@
             const ctx = document.getElementById('styleTCOChart').getContext('2d');
             if (charts.styleTCO) charts.styleTCO.destroy();
             
-            // Filter cars that have founder credibility scores
-            const styledCars = filteredData.filter(car => car.founderCredibility);
+            // Add default founder credibility scores for cars missing them
+            const styledCars = filteredData.map(car => {
+                if (car.founderCredibility) return car;
+                
+                // Assign default credibility based on brand/category
+                let defaultCredibility = 4; // Default baseline
+                
+                if (car.brand === 'Tesla') defaultCredibility = 6;
+                else if (car.brand === 'Porsche') defaultCredibility = 10;
+                else if (car.brand === 'BMW') defaultCredibility = 8;
+                else if (car.brand === 'Mercedes') defaultCredibility = 8;
+                else if (car.brand === 'Audi') defaultCredibility = 7;
+                else if (car.brand === 'Lexus') defaultCredibility = 6;
+                else if (car.brand === 'Genesis') defaultCredibility = 7;
+                else if (car.brand === 'Range Rover') defaultCredibility = 9;
+                else if (car.brand === 'Honda' && car.name.includes('Type R')) defaultCredibility = 7;
+                else if (car.brand === 'Honda') defaultCredibility = 4;
+                else if (car.brand === 'Toyota' && car.name.includes('RAV4')) defaultCredibility = 6;
+                else if (car.brand === 'Toyota') defaultCredibility = 4;
+                else if (car.brand === 'Chevrolet') defaultCredibility = 3;
+                else if (car.brand === 'Nissan') defaultCredibility = 3;
+                else if (car.brand === 'Hyundai' || car.brand === 'Kia') defaultCredibility = 4;
+                else if (car.brand === 'Ford') defaultCredibility = 5;
+                else if (car.brand === 'Scion') defaultCredibility = 3;
+                
+                return {...car, founderCredibility: defaultCredibility};
+            });
             
             charts.styleTCO = new Chart(ctx, {
                 type: 'scatter',
