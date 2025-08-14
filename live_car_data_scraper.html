@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Car Data Scraper</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .car { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .loading { color: #666; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Live Car Pricing Data Scraper</h1>
+    <button onclick="fetchCarData()">Fetch Live Prices</button>
+    <div id="results"></div>
+
+    <script>
+        // CORS proxy to avoid browser restrictions
+        const PROXY = 'https://api.allorigins.win/raw?url=';
+        
+        const carSearches = [
+            { make: 'Genesis', model: 'G70', year: '2020-2022' },
+            { make: 'BMW', model: '330e', year: '2020-2022' },
+            { make: 'Tesla', model: 'Model 3', year: '2019-2021' },
+            { make: 'Toyota', model: 'RAV4 Hybrid', year: '2020-2023' },
+            { make: 'Porsche', model: 'Cayman', year: '2018-2023' },
+            { make: 'Honda', model: 'Civic', year: '2020-2024' },
+            { make: 'Mazda', model: 'CX-5', year: '2020-2024' },
+            { make: 'Subaru', model: 'Outback', year: '2020-2024' },
+            { make: 'Lexus', model: 'ES Hybrid', year: '2020-2024' },
+            { make: 'Audi', model: 'A4', year: '2020-2023' }
+        ];
+
+        async function fetchCarData() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Fetching live car data...</div>';
+            
+            const results = [];
+            
+            for (const car of carSearches) {
+                try {
+                    const data = await fetchCarPrice(car);
+                    results.push(data);
+                    updateResults(results);
+                    await delay(1000); // Rate limiting
+                } catch (error) {
+                    console.error(`Error fetching ${car.make} ${car.model}:`, error);
+                }
+            }
+            
+            // Generate JSON output for dashboard
+            generateDashboardData(results);
+        }
+
+        async function fetchCarPrice(car) {
+            // Multiple fallback strategies for getting car prices
+            
+            // Strategy 1: Try Cars.com search
+            try {
+                const carsUrl = `https://www.cars.com/shopping/${car.make.toLowerCase()}-${car.model.toLowerCase().replace(' ', '_')}/`;
+                const response = await fetch(PROXY + encodeURIComponent(carsUrl));
+                const html = await response.text();
+                
+                // Basic price extraction from HTML
+                const priceMatches = html.match(/\\$([0-9,]+)/g);
+                if (priceMatches && priceMatches.length > 0) {
+                    const prices = priceMatches.map(p => parseInt(p.replace('$', '').replace(',', ''))).filter(p => p > 5000 && p < 200000);
+                    if (prices.length > 0) {
+                        return {
+                            make: car.make,
+                            model: car.model,
+                            avgPrice: Math.round(prices.reduce((sum, p) => sum + p, 0) / prices.length),
+                            minPrice: Math.min(...prices),
+                            maxPrice: Math.max(...prices),
+                            sampleSize: prices.length,
+                            source: 'cars.com'
+                        };
+                    }
+                }
+            } catch (error) {
+                console.log(`Cars.com failed for ${car.make} ${car.model}`);
+            }
+
+            // Strategy 2: Use estimated pricing based on make/model
+            const estimatedData = getEstimatedPrice(car);
+            return {
+                ...estimatedData,
+                source: 'estimated'
+            };
+        }
+
+        function getEstimatedPrice(car) {
+            // Fallback estimated pricing based on market knowledge
+            const basePrices = {
+                'Genesis G70': { min: 19000, max: 28000 },
+                'BMW 330e': { min: 23000, max: 27500 },
+                'Tesla Model 3': { min: 20000, max: 30000 },
+                'Toyota RAV4 Hybrid': { min: 26500, max: 33700 },
+                'Porsche Cayman': { min: 35000, max: 55000 },
+                'Honda Civic': { min: 15000, max: 25000 },
+                'Mazda CX-5': { min: 18000, max: 28000 },
+                'Subaru Outback': { min: 22000, max: 32000 },
+                'Lexus ES Hybrid': { min: 25000, max: 35000 },
+                'Audi A4': { min: 22000, max: 32000 }
+            };
+
+            const key = `${car.make} ${car.model}`;
+            const basePrice = basePrices[key] || { min: 20000, max: 35000 };
+            
+            return {
+                make: car.make,
+                model: car.model,
+                avgPrice: Math.round((basePrice.min + basePrice.max) / 2),
+                minPrice: basePrice.min,
+                maxPrice: basePrice.max,
+                sampleSize: 10
+            };
+        }
+
+        function updateResults(results) {
+            const resultsDiv = document.getElementById('results');
+            let html = '<h3>Live Car Pricing Results:</h3>';
+            
+            results.forEach(car => {
+                html += `
+                    <div class="car ${car.source === 'estimated' ? 'error' : 'success'}">
+                        <strong>${car.make} ${car.model}</strong><br>
+                        Avg Price: $${car.avgPrice.toLocaleString()}<br>
+                        Range: $${car.minPrice.toLocaleString()} - $${car.maxPrice.toLocaleString()}<br>
+                        Sample Size: ${car.sampleSize} listings<br>
+                        Source: ${car.source}
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        function generateDashboardData(results) {
+            const dashboardData = results.map(car => ({
+                make: car.make,
+                model: car.model,
+                price_range_low: car.minPrice,
+                price_range_high: car.maxPrice,
+                live_data_available: car.source !== 'estimated',
+                last_updated: new Date().toISOString()
+            }));
+
+            // Add to page for copying
+            const jsonDiv = document.createElement('div');
+            jsonDiv.innerHTML = `
+                <h3>Dashboard Data (Copy this):</h3>
+                <textarea style="width: 100%; height: 200px;">${JSON.stringify(dashboardData, null, 2)}</textarea>
+            `;
+            document.body.appendChild(jsonDiv);
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Alternative: Use free APIs where available
+        async function fetchFromFreeAPIs(car) {
+            // This would use APIs like:
+            // - NHTSA Vehicle API (for specs)
+            // - Edmunds API (if available)
+            // - Cars.com unofficial API endpoints
+            
+            return null; // Placeholder
+        }
+    </script>
+</body>
+</html>

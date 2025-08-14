@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Analysis Dashboard - Real Market Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(52, 73, 94, 0.1);
+            border-radius: 10px;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .chart-canvas {
+            position: relative;
+            height: 400px;
+        }
+        
+        #loading {
+            text-align: center;
+            font-size: 1.5em;
+            color: #2c3e50;
+            padding: 50px;
+        }
+        
+        #error {
+            color: #e74c3c;
+            text-align: center;
+            font-size: 1.2em;
+            padding: 20px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Car Analysis Dashboard</h1>
+        <p class="subtitle">Real Market Data from KBB & Edmunds - Optimized for Founding Engineers</p>
+        
+        <div id="loading">Loading car market data...</div>
+        <div id="error" style="display: none;"></div>
+        
+        <div id="content" style="display: none;">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="budgetFilter">Budget Range</label>
+                    <select id="budgetFilter">
+                        <option value="all">All Budgets</option>
+                        <option value="under20k">Under $20k</option>
+                        <option value="20to30k">$20k - $30k</option>
+                        <option value="30to40k">$30k - $40k</option>
+                        <option value="over40k">Over $40k</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="brandFilter">Brand</label>
+                    <select id="brandFilter">
+                        <option value="all">All Brands</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="fuelFilter">Fuel Type</label>
+                    <select id="fuelFilter">
+                        <option value="all">All Types</option>
+                        <option value="Electric">Electric</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="PHEV">PHEV</option>
+                        <option value="Gas">Gas</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="reliabilityFilter">Min Reliability</label>
+                    <select id="reliabilityFilter">
+                        <option value="all">All Ratings</option>
+                        <option value="7">7+ Rating</option>
+                        <option value="8">8+ Rating</option>
+                        <option value="9">9+ Rating</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+            
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3 class="chart-title">TCO vs Reliability</h3>
+                    <div class="chart-canvas">
+                        <canvas id="tcoReliabilityChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">TCO by Brand</h3>
+                    <div class="chart-canvas">
+                        <canvas id="tcoBrandChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">Price vs Depreciation</h3>
+                    <div class="chart-canvas">
+                        <canvas id="depreciationChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">TCO by Category</h3>
+                    <div class="chart-canvas">
+                        <canvas id="tcoCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let carData = [];
+        let charts = {};
+        
+        // Parse CSV line handling quoted fields
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim().replace(/^"|"$/g, ''));
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim().replace(/^"|"$/g, ''));
+            return result;
+        }
+        
+        // Load CSV data
+        async function loadData() {
+            try {
+                const response = await fetch('comprehensive_car_analysis.csv');
+                if (!response.ok) {
+                    throw new Error('CSV file not found');
+                }
+                
+                const csvText = await response.text();
+                const lines = csvText.trim().split('\n');
+                const headers = lines[0].split(',');
+                
+                carData = lines.slice(1).map(line => {
+                    const values = parseCSVLine(line);
+                    const car = {};
+                    headers.forEach((header, index) => {
+                        let value = values[index] || '';
+                        
+                        // Convert numeric fields
+                        if (['price_range_low', 'price_range_high', 'annual_fuel_cost', 'tco_3yr_low', 'tco_3yr_high', 
+                             'founder_credibility_score', 'reliability_score', 'depreciation_3yr_percent',
+                             'maintenance_annual', 'insurance_annual', 'mpg_combined'].includes(header)) {
+                            value = parseFloat(value) || 0;
+                        }
+                        
+                        car[header] = value;
+                    });
+                    return car;
+                });
+                
+                console.log(`Loaded ${carData.length} cars from CSV`);
+                return true;
+                
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+                document.getElementById('error').innerHTML = 
+                    'Could not load car data. Please make sure comprehensive_car_analysis.csv is in the same directory as this HTML file.';
+                document.getElementById('error').style.display = 'block';
+                return false;
+            }
+        }
+        
+        // Get filtered data based on current filters
+        function getFilteredData() {
+            let filtered = [...carData];
+            
+            // Budget filter
+            const budgetFilter = document.getElementById('budgetFilter')?.value;
+            if (budgetFilter && budgetFilter !== 'all') {
+                filtered = filtered.filter(car => {
+                    const avgPrice = (car.price_range_low + car.price_range_high) / 2;
+                    switch(budgetFilter) {
+                        case 'under20k': return avgPrice < 20000;
+                        case '20to30k': return avgPrice >= 20000 && avgPrice < 30000;
+                        case '30to40k': return avgPrice >= 30000 && avgPrice < 40000;
+                        case 'over40k': return avgPrice >= 40000;
+                        default: return true;
+                    }
+                });
+            }
+            
+            // Brand filter
+            const brandFilter = document.getElementById('brandFilter')?.value;
+            if (brandFilter && brandFilter !== 'all') {
+                filtered = filtered.filter(car => car.make === brandFilter);
+            }
+            
+            // Fuel filter
+            const fuelFilter = document.getElementById('fuelFilter')?.value;
+            if (fuelFilter && fuelFilter !== 'all') {
+                filtered = filtered.filter(car => car.fuel_type === fuelFilter);
+            }
+            
+            // Reliability filter
+            const reliabilityFilter = document.getElementById('reliabilityFilter')?.value;
+            if (reliabilityFilter && reliabilityFilter !== 'all') {
+                const minReliability = parseInt(reliabilityFilter);
+                filtered = filtered.filter(car => car.reliability_score >= minReliability);
+            }
+            
+            return filtered;
+        }
+        
+        // Populate brand filter with unique brands
+        function populateBrandFilter() {
+            const brandFilter = document.getElementById('brandFilter');
+            const brands = [...new Set(carData.map(car => car.make))].sort();
+            
+            brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandFilter.appendChild(option);
+            });
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const filtered = getFilteredData();
+            if (filtered.length === 0) return;
+            
+            const avgTCO = filtered.reduce((sum, car) => sum + (car.tco_3yr_low + car.tco_3yr_high) / 2, 0) / filtered.length;
+            const avgReliability = filtered.reduce((sum, car) => sum + car.reliability_score, 0) / filtered.length;
+            const avgDepreciation = filtered.reduce((sum, car) => sum + car.depreciation_3yr_percent, 0) / filtered.length;
+            
+            const bestValue = filtered.reduce((best, car) => {
+                const carTCO = (car.tco_3yr_low + car.tco_3yr_high) / 2;
+                const bestTCO = (best.tco_3yr_low + best.tco_3yr_high) / 2;
+                return carTCO < bestTCO ? car : best;
+            });
+            
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">$${Math.round(avgTCO).toLocaleString()}</div>
+                    <div class="stat-label">Average 3-Year TCO</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${avgReliability.toFixed(1)}</div>
+                    <div class="stat-label">Average Reliability</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${avgDepreciation.toFixed(0)}%</div>
+                    <div class="stat-label">Average Depreciation</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${bestValue.make} ${bestValue.model}</div>
+                    <div class="stat-label">Best Value Pick</div>
+                </div>
+            `;
+        }
+        
+        // Create TCO vs Reliability chart
+        function createTCOVsReliabilityChart() {
+            const ctx = document.getElementById('tcoReliabilityChart').getContext('2d');
+            const filtered = getFilteredData();
+            
+            const data = filtered.map(car => ({
+                x: car.reliability_score,
+                y: (car.tco_3yr_low + car.tco_3yr_high) / 2,
+                label: `${car.make} ${car.model}`,
+                color: car.fuel_type === 'Electric' ? '#3498db' : 
+                       car.fuel_type === 'Hybrid' || car.fuel_type === 'PHEV' ? '#2ecc71' : '#e74c3c'
+            }));
+            
+            if (charts.tcoReliability) charts.tcoReliability.destroy();
+            charts.tcoReliability = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Cars',
+                        data: data,
+                        backgroundColor: data.map(d => d.color),
+                        borderColor: data.map(d => d.color),
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Reliability Score'
+                            },
+                            min: 4,
+                            max: 10
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '3-Year TCO ($)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = data[context.dataIndex];
+                                    return `${point.label}: $${context.parsed.y.toLocaleString()} TCO, ${context.parsed.x} reliability`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create TCO by Brand chart
+        function createTCOByBrandChart() {
+            const ctx = document.getElementById('tcoBrandChart').getContext('2d');
+            const filtered = getFilteredData();
+            
+            // Group by brand and calculate average TCO
+            const brands = {};
+            filtered.forEach(car => {
+                if (!brands[car.make]) {
+                    brands[car.make] = [];
+                }
+                brands[car.make].push((car.tco_3yr_low + car.tco_3yr_high) / 2);
+            });
+            
+            const brandData = Object.keys(brands)
+                .map(brand => ({
+                    brand: brand,
+                    avgTCO: brands[brand].reduce((sum, tco) => sum + tco, 0) / brands[brand].length,
+                    count: brands[brand].length
+                }))
+                .sort((a, b) => a.avgTCO - b.avgTCO);
+            
+            if (charts.tcoBrand) charts.tcoBrand.destroy();
+            charts.tcoBrand = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: brandData.map(b => b.brand),
+                    datasets: [{
+                        data: brandData.map(b => b.avgTCO),
+                        backgroundColor: '#3498db',
+                        borderColor: '#2980b9',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Average 3-Year TCO ($)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const brand = brandData[context.dataIndex];
+                                    return `${brand.brand}: $${context.parsed.y.toLocaleString()} avg (${brand.count} models)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create Depreciation chart
+        function createDepreciationChart() {
+            const ctx = document.getElementById('depreciationChart').getContext('2d');
+            const filtered = getFilteredData();
+            
+            const data = filtered.map(car => ({
+                x: (car.price_range_low + car.price_range_high) / 2,
+                y: car.depreciation_3yr_percent,
+                label: `${car.make} ${car.model}`,
+                color: car.fuel_type === 'Electric' ? '#3498db' : 
+                       car.fuel_type === 'Hybrid' || car.fuel_type === 'PHEV' ? '#2ecc71' : '#e74c3c'
+            }));
+            
+            if (charts.depreciation) charts.depreciation.destroy();
+            charts.depreciation = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Cars',
+                        data: data,
+                        backgroundColor: data.map(d => d.color),
+                        borderColor: data.map(d => d.color),
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Average Price ($)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '3-Year Depreciation (%)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = data[context.dataIndex];
+                                    return `${point.label}: $${context.parsed.x.toLocaleString()} avg price, ${context.parsed.y}% depreciation`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create TCO by Category chart
+        function createTCOByCategoryChart() {
+            const ctx = document.getElementById('tcoCategoryChart').getContext('2d');
+            const filtered = getFilteredData();
+            
+            // Group by simplified category
+            const categories = {};
+            filtered.forEach(car => {
+                let category = car.category;
+                // Simplify categories
+                if (category.includes('EV') || car.fuel_type === 'Electric') category = 'Electric';
+                else if (category.includes('Hybrid') || car.fuel_type === 'Hybrid' || car.fuel_type === 'PHEV') category = 'Hybrid';
+                else if (category.includes('Sports')) category = 'Sports';
+                else if (category.includes('Luxury')) category = 'Luxury';
+                else if (category.includes('SUV')) category = 'SUV';
+                else if (category.includes('Compact') || category.includes('Budget')) category = 'Compact';
+                else category = 'Sedan';
+                
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push((car.tco_3yr_low + car.tco_3yr_high) / 2);
+            });
+            
+            const categoryData = Object.keys(categories).map(cat => ({
+                category: cat,
+                avgTCO: categories[cat].reduce((sum, tco) => sum + tco, 0) / categories[cat].length,
+                count: categories[cat].length
+            }));
+            
+            const colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
+            
+            if (charts.tcoCategory) charts.tcoCategory.destroy();
+            charts.tcoCategory = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.map(c => `${c.category} ($${(c.avgTCO / 1000).toFixed(0)}k)`),
+                    datasets: [{
+                        data: categoryData.map(c => c.avgTCO),
+                        backgroundColor: colors.slice(0, categoryData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const cat = categoryData[context.dataIndex];
+                                    return `${cat.category}: $${context.parsed.toLocaleString()} avg (${cat.count} cars)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create all charts
+        function createCharts() {
+            createTCOVsReliabilityChart();
+            createTCOByBrandChart();
+            createDepreciationChart();
+            createTCOByCategoryChart();
+        }
+        
+        // Setup filter event listeners
+        function setupFilters() {
+            ['budgetFilter', 'brandFilter', 'fuelFilter', 'reliabilityFilter'].forEach(filterId => {
+                document.getElementById(filterId).addEventListener('change', updateDashboard);
+            });
+        }
+        
+        // Update dashboard with current filters
+        function updateDashboard() {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart && chart.destroy) chart.destroy();
+            });
+            charts = {};
+            
+            // Recreate with filtered data
+            updateStats();
+            createCharts();
+        }
+        
+        // Initialize dashboard
+        async function initDashboard() {
+            document.getElementById('loading').textContent = 'Loading car market data...';
+            
+            const dataLoaded = await loadData();
+            if (!dataLoaded) {
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            
+            populateBrandFilter();
+            updateStats();
+            createCharts();
+            setupFilters();
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }
+        
+        // Start the dashboard when page loads
+        window.addEventListener('load', initDashboard);
+    </script>
+</body>
+</html>

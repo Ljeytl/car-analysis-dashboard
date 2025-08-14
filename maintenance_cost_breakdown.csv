@@ -1,0 +1,11 @@
+make,model,year_1_cost,year_2_cost,year_3_cost,year_4_cost,year_5_cost,total_5yr_cost,cost_per_mile_5yr,major_services,notes
+BMW,330e,150,400,650,900,1200,3300,0.22,"Oil changes $250/yr, brake fluid at 4yr","Warranty covers first 3yr/36k, then BMW service premium kicks in"
+Tesla,Model 3,100,200,300,500,800,1900,0.13,"Tires $800/20k mi, air filter $80/2yr","No oil changes, regen braking saves brake costs, battery warranty 8yr"
+Genesis,G70,0,0,0,500,800,1300,0.09,"FREE first 3yr/36k, oil $100/yr after","Exceptional warranty coverage, then Hyundai service rates"
+Toyota,RAV4 Hybrid,250,300,350,400,500,1800,0.12,"Oil $60/10k mi, coolant flush 100k","Most reliable, predictable service schedule"
+BMW,330i,200,500,700,1000,1300,3700,0.25,"Oil $250/yr, premium parts","Higher maintenance than 330e due to no hybrid system efficiency"
+Porsche,Cayman,400,600,800,1200,1500,4500,0.30,"Oil $400/yr, premium everything","Porsche service rates, but excellent reliability after warranty"
+Audi,A4,250,450,650,950,1200,3500,0.23,"Oil $200/yr, German complexity","Similar to BMW but slightly more reasonable"
+Lexus,ES Hybrid,200,250,300,350,400,1500,0.10,"Oil $80/10k mi, Toyota reliability","Best luxury reliability, hybrid efficiency"
+Acura,TLX,200,300,400,500,600,2000,0.13,"Oil $100/yr, Honda engineering","Honda reliability with luxury features"
+Chevrolet,Bolt EV,150,250,350,600,900,2250,0.15,"Coolant service, software updates","Cheaper EV service than Tesla, but dealer network issues"

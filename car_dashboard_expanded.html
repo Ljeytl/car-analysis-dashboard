@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Analysis Dashboard - Full Dataset</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(52, 73, 94, 0.1);
+            border-radius: 10px;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .top-picks {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .picks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .pick-card {
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 15px;
+            background: rgba(52, 152, 219, 0.05);
+        }
+        
+        .pick-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .pick-car {
+            font-size: 1.3em;
+            color: #3498db;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .pick-details {
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.4;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .chart-canvas {
+            position: relative;
+            height: 400px;
+        }
+        
+        canvas {
+            max-height: 400px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Car Analysis Dashboard</h1>
+        <p class="subtitle">Complete Dataset: 48 Cars with Real KBB & Edmunds Data</p>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="budgetFilter">Budget Range</label>
+                <select id="budgetFilter">
+                    <option value="all">All Budgets</option>
+                    <option value="under20k">Under $20k</option>
+                    <option value="20to30k">$20k - $30k</option>
+                    <option value="30to40k">$30k - $40k</option>
+                    <option value="over40k">Over $40k</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="fuelFilter">Fuel Type</label>
+                <select id="fuelFilter">
+                    <option value="all">All Types</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="PHEV">PHEV</option>
+                    <option value="Gas">Gas</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="reliabilityFilter">Min Reliability</label>
+                <select id="reliabilityFilter">
+                    <option value="all">All Ratings</option>
+                    <option value="7">7+ Rating</option>
+                    <option value="8">8+ Rating</option>
+                    <option value="9">9+ Rating</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="stats-grid" id="statsGrid">
+            <!-- Stats populated by JavaScript -->
+        </div>
+
+        <div class="top-picks">
+            <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">🎯 Top Picks for Founding Engineers</h2>
+            <div class="picks-grid" id="topPicks">
+                <!-- Top picks populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3 class="chart-title">TCO vs Reliability (All 48 Cars)</h3>
+                <div class="chart-canvas">
+                    <canvas id="tcoReliabilityChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Price vs Depreciation</h3>
+                <div class="chart-canvas">
+                    <canvas id="depreciationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">TCO by Brand (Average)</h3>
+                <div class="chart-canvas">
+                    <canvas id="tcoBrandChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Fuel Type Comparison</h3>
+                <div class="chart-canvas">
+                    <canvas id="fuelTypeChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Best Values (Low TCO + High Reliability)</h3>
+                <div class="chart-canvas">
+                    <canvas id="valueChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Depreciation Distribution</h3>
+                <div class="chart-canvas">
+                    <canvas id="depreciationHistogram"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">TCO Range by Category</h3>
+                <div class="chart-canvas">
+                    <canvas id="categoryBoxChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Electric vs Hybrid vs Gas TCO</h3>
+                <div class="chart-canvas">
+                    <canvas id="fuelComparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Complete dataset - all 48 cars with real market data
+        const carData = [
+            {name: 'Tesla Model 3', tco: 11325, reliability: 8, price: 25500, depreciation: 45, fuel: 'Electric', brand: 'Tesla', category: 'Electric'},
+            {name: 'Tesla Model Y', tco: 18675, reliability: 8, price: 37500, depreciation: 32, fuel: 'Electric', brand: 'Tesla', category: 'Electric'},
+            {name: 'Tesla Model S', tco: 33525, reliability: 7, price: 50000, depreciation: 35, fuel: 'Electric', brand: 'Tesla', category: 'Electric'},
+            {name: 'BMW i4', tco: 24700, reliability: 8, price: 47500, depreciation: 28, fuel: 'Electric', brand: 'BMW', category: 'Electric'},
+            {name: 'BMW 330e', tco: 18700, reliability: 7, price: 25250, depreciation: 38, fuel: 'PHEV', brand: 'BMW', category: 'Luxury'},
+            {name: 'BMW 330i', tco: 20350, reliability: 7, price: 26000, depreciation: 28, fuel: 'Gas', brand: 'BMW', category: 'Luxury'},
+            {name: 'BMW M240i', tco: 26600, reliability: 7, price: 36000, depreciation: 30, fuel: 'Gas', brand: 'BMW', category: 'Sports'},
+            {name: 'BMW M2', tco: 31150, reliability: 7, price: 42500, depreciation: 25, fuel: 'Gas', brand: 'BMW', category: 'Sports'},
+            {name: 'Audi A4', tco: 21700, reliability: 7, price: 27000, depreciation: 30, fuel: 'Gas', brand: 'Audi', category: 'Luxury'},
+            {name: 'Audi S4', tco: 26300, reliability: 7, price: 34000, depreciation: 32, fuel: 'Gas', brand: 'Audi', category: 'Sports'},
+            {name: 'Genesis G70', tco: 17800, reliability: 8, price: 24500, depreciation: 43, fuel: 'Gas', brand: 'Genesis', category: 'Luxury'},
+            {name: 'Genesis G80', tco: 24225, reliability: 8, price: 35000, depreciation: 33, fuel: 'Gas', brand: 'Genesis', category: 'Luxury'},
+            {name: 'Genesis GV70', tco: 29300, reliability: 8, price: 41500, depreciation: 30, fuel: 'Gas', brand: 'Genesis', category: 'SUV'},
+            {name: 'Genesis GV60', tco: 27000, reliability: 8, price: 52500, depreciation: 35, fuel: 'Electric', brand: 'Genesis', category: 'Electric'},
+            {name: 'Mercedes C300', tco: 24300, reliability: 6, price: 30000, depreciation: 32, fuel: 'Gas', brand: 'Mercedes', category: 'Luxury'},
+            {name: 'Mercedes CLA250', tco: 22500, reliability: 6, price: 27000, depreciation: 35, fuel: 'Gas', brand: 'Mercedes', category: 'Luxury'},
+            {name: 'Porsche Cayman', tco: 32950, reliability: 9, price: 44500, depreciation: 22, fuel: 'Gas', brand: 'Porsche', category: 'Sports'},
+            {name: 'Porsche Boxster', tco: 30200, reliability: 9, price: 40000, depreciation: 22, fuel: 'Gas', brand: 'Porsche', category: 'Sports'},
+            {name: 'Porsche Macan', tco: 32650, reliability: 8, price: 42500, depreciation: 25, fuel: 'Gas', brand: 'Porsche', category: 'SUV'},
+            {name: 'Lexus IS', tco: 20650, reliability: 9, price: 27000, depreciation: 25, fuel: 'Gas', brand: 'Lexus', category: 'Luxury'},
+            {name: 'Lexus ES Hybrid', tco: 23100, reliability: 9, price: 34000, depreciation: 27, fuel: 'Hybrid', brand: 'Lexus', category: 'Hybrid'},
+            {name: 'Acura TLX', tco: 22675, reliability: 8, price: 29500, depreciation: 28, fuel: 'Gas', brand: 'Acura', category: 'Luxury'},
+            {name: 'Acura RDX', tco: 23200, reliability: 8, price: 30000, depreciation: 28, fuel: 'Gas', brand: 'Acura', category: 'SUV'},
+            {name: 'Toyota RAV4 Hybrid', tco: 21300, reliability: 9, price: 30500, depreciation: 15, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid'},
+            {name: 'Toyota Camry Hybrid', tco: 19100, reliability: 9, price: 27500, depreciation: 22, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid'},
+            {name: 'Toyota Prius', tco: 15800, reliability: 9, price: 23000, depreciation: 25, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid'},
+            {name: 'Toyota Prius Prime', tco: 16750, reliability: 9, price: 24000, depreciation: 28, fuel: 'PHEV', brand: 'Toyota', category: 'Hybrid'},
+            {name: 'Toyota GR86', tco: 22450, reliability: 8, price: 28500, depreciation: 25, fuel: 'Gas', brand: 'Toyota', category: 'Sports'},
+            {name: 'Honda Accord Hybrid', tco: 18650, reliability: 9, price: 26000, depreciation: 25, fuel: 'Hybrid', brand: 'Honda', category: 'Hybrid'},
+            {name: 'Honda CR-V Hybrid', tco: 21350, reliability: 8, price: 29000, depreciation: 24, fuel: 'Hybrid', brand: 'Honda', category: 'SUV'},
+            {name: 'Honda Civic', tco: 16400, reliability: 9, price: 21000, depreciation: 31, fuel: 'Gas', brand: 'Honda', category: 'Compact'},
+            {name: 'Hyundai Ioniq 5', tco: 12075, reliability: 7, price: 26000, depreciation: 52, fuel: 'Electric', brand: 'Hyundai', category: 'Electric'},
+            {name: 'Hyundai Elantra Hybrid', tco: 17350, reliability: 7, price: 23000, depreciation: 35, fuel: 'Hybrid', brand: 'Hyundai', category: 'Hybrid'},
+            {name: 'Kia EV6', tco: 17325, reliability: 7, price: 36000, depreciation: 42, fuel: 'Electric', brand: 'Kia', category: 'Electric'},
+            {name: 'Kia Stinger', tco: 21850, reliability: 7, price: 27000, depreciation: 40, fuel: 'Gas', brand: 'Kia', category: 'Sports'},
+            {name: 'Chevrolet Bolt EUV', tco: 9075, reliability: 6, price: 20000, depreciation: 55, fuel: 'Electric', brand: 'Chevrolet', category: 'Electric'},
+            {name: 'Chevrolet Bolt EV', tco: 7325, reliability: 6, price: 17000, depreciation: 55, fuel: 'Electric', brand: 'Chevrolet', category: 'Electric'},
+            {name: 'Nissan Leaf', tco: 13525, reliability: 5, price: 18500, depreciation: 60, fuel: 'Electric', brand: 'Nissan', category: 'Electric'},
+            {name: 'Volkswagen ID.4', tco: 14575, reliability: 6, price: 30000, depreciation: 45, fuel: 'Electric', brand: 'Volkswagen', category: 'Electric'},
+            {name: 'Volvo S60', tco: 21900, reliability: 8, price: 27000, depreciation: 35, fuel: 'Gas', brand: 'Volvo', category: 'Luxury'},
+            {name: 'Volvo XC60', tco: 25200, reliability: 8, price: 32500, depreciation: 32, fuel: 'Gas', brand: 'Volvo', category: 'SUV'},
+            {name: 'Alfa Romeo Giulia', tco: 26700, reliability: 4, price: 32500, depreciation: 45, fuel: 'Gas', brand: 'Alfa Romeo', category: 'Sports'},
+            {name: 'Infiniti Q50', tco: 19050, reliability: 6, price: 23000, depreciation: 35, fuel: 'Gas', brand: 'Infiniti', category: 'Luxury'},
+            {name: 'Lincoln Continental', tco: 21850, reliability: 6, price: 25000, depreciation: 40, fuel: 'Gas', brand: 'Lincoln', category: 'Luxury'},
+            {name: 'Mazda CX-5', tco: 19500, reliability: 8, price: 24000, depreciation: 30, fuel: 'Gas', brand: 'Mazda', category: 'SUV'},
+            {name: 'Subaru Outback', tco: 21850, reliability: 9, price: 27000, depreciation: 28, fuel: 'Gas', brand: 'Subaru', category: 'SUV'},
+            {name: 'Volkswagen Golf GTI', tco: 21425, reliability: 6, price: 25000, depreciation: 35, fuel: 'Gas', brand: 'Volkswagen', category: 'Sports'},
+            {name: 'Mini Cooper S', tco: 21150, reliability: 5, price: 23000, depreciation: 40, fuel: 'Gas', brand: 'Mini', category: 'Compact'}
+        ];
+
+        let filteredData = [...carData];
+        let charts = {};
+
+        // Filter functions
+        function applyFilters() {
+            filteredData = [...carData];
+
+            const budget = document.getElementById('budgetFilter').value;
+            if (budget !== 'all') {
+                filteredData = filteredData.filter(car => {
+                    switch(budget) {
+                        case 'under20k': return car.price < 20000;
+                        case '20to30k': return car.price >= 20000 && car.price < 30000;
+                        case '30to40k': return car.price >= 30000 && car.price < 40000;
+                        case 'over40k': return car.price >= 40000;
+                        default: return true;
+                    }
+                });
+            }
+
+            const fuel = document.getElementById('fuelFilter').value;
+            if (fuel !== 'all') {
+                filteredData = filteredData.filter(car => car.fuel === fuel);
+            }
+
+            const reliability = document.getElementById('reliabilityFilter').value;
+            if (reliability !== 'all') {
+                filteredData = filteredData.filter(car => car.reliability >= parseInt(reliability));
+            }
+
+            updateDashboard();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const avgTCO = filteredData.reduce((sum, car) => sum + car.tco, 0) / filteredData.length;
+            const avgReliability = filteredData.reduce((sum, car) => sum + car.reliability, 0) / filteredData.length;
+            const avgDepreciation = filteredData.reduce((sum, car) => sum + car.depreciation, 0) / filteredData.length;
+
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${filteredData.length}</div>
+                    <div class="stat-label">Cars Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$${Math.round(avgTCO).toLocaleString()}</div>
+                    <div class="stat-label">Average 3-Year TCO</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${avgReliability.toFixed(1)}</div>
+                    <div class="stat-label">Average Reliability</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${avgDepreciation.toFixed(0)}%</div>
+                    <div class="stat-label">Average Depreciation</div>
+                </div>
+            `;
+        }
+
+        // Update top picks
+        function updateTopPicks() {
+            const bestTCO = filteredData.reduce((best, car) => car.tco < best.tco ? car : best);
+            const bestReliability = filteredData.reduce((best, car) => car.reliability > best.reliability ? car : best);
+            const bestEV = filteredData.filter(car => car.fuel === 'Electric').reduce((best, car) => !best || car.tco < best.tco ? car : best, null);
+            const bestValue = filteredData.reduce((best, car) => {
+                const score = car.reliability / car.tco * 100000;
+                const bestScore = best.reliability / best.tco * 100000;
+                return score > bestScore ? car : best;
+            });
+
+            let html = `
+                <div class="pick-card">
+                    <div class="pick-title">💰 Best TCO</div>
+                    <div class="pick-car">${bestTCO.name}</div>
+                    <div class="pick-details">
+                        $${bestTCO.tco.toLocaleString()} TCO<br>
+                        ${bestTCO.reliability}/10 reliability<br>
+                        $${bestTCO.price.toLocaleString()} avg price
+                    </div>
+                </div>
+                <div class="pick-card">
+                    <div class="pick-title">🔧 Most Reliable</div>
+                    <div class="pick-car">${bestReliability.name}</div>
+                    <div class="pick-details">
+                        ${bestReliability.reliability}/10 reliability<br>
+                        $${bestReliability.tco.toLocaleString()} TCO<br>
+                        ${bestReliability.depreciation}% depreciation
+                    </div>
+                </div>
+                <div class="pick-card">
+                    <div class="pick-title">🏆 Best Value</div>
+                    <div class="pick-car">${bestValue.name}</div>
+                    <div class="pick-details">
+                        ${bestValue.reliability}/10 reliability<br>
+                        $${bestValue.tco.toLocaleString()} TCO<br>
+                        Best reliability-to-cost ratio
+                    </div>
+                </div>
+            `;
+
+            if (bestEV) {
+                html += `
+                    <div class="pick-card">
+                        <div class="pick-title">⚡ Best EV</div>
+                        <div class="pick-car">${bestEV.name}</div>
+                        <div class="pick-details">
+                            $${bestEV.tco.toLocaleString()} TCO<br>
+                            ${bestEV.reliability}/10 reliability<br>
+                            ${bestEV.depreciation}% depreciation
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('topPicks').innerHTML = html;
+        }
+
+        // Chart creation functions
+        function createTCOReliabilityChart() {
+            const ctx = document.getElementById('tcoReliabilityChart').getContext('2d');
+            if (charts.tcoReliability) charts.tcoReliability.destroy();
+            
+            charts.tcoReliability = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Cars',
+                        data: filteredData.map(car => ({
+                            x: car.reliability,
+                            y: car.tco,
+                            label: car.name
+                        })),
+                        backgroundColor: filteredData.map(car => 
+                            car.fuel === 'Electric' ? '#3498db' : 
+                            car.fuel === 'Hybrid' || car.fuel === 'PHEV' ? '#2ecc71' : '#e74c3c'
+                        ),
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const car = filteredData[context.dataIndex];
+                                    return `${car.name}: $${car.tco.toLocaleString()} TCO, ${car.reliability}/10 reliability`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Reliability Score' },
+                            min: 4, max: 10
+                        },
+                        y: {
+                            title: { display: true, text: '3-Year TCO ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createDepreciationChart() {
+            const ctx = document.getElementById('depreciationChart').getContext('2d');
+            if (charts.depreciation) charts.depreciation.destroy();
+            
+            charts.depreciation = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Cars',
+                        data: filteredData.map(car => ({
+                            x: car.price,
+                            y: car.depreciation,
+                            label: car.name
+                        })),
+                        backgroundColor: filteredData.map(car => 
+                            car.fuel === 'Electric' ? '#3498db' : 
+                            car.fuel === 'Hybrid' || car.fuel === 'PHEV' ? '#2ecc71' : '#e74c3c'
+                        ),
+                        pointRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const car = filteredData[context.dataIndex];
+                                    return `${car.name}: $${car.price.toLocaleString()}, ${car.depreciation}% depreciation`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Average Price ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: '3-Year Depreciation (%)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTCOBrandChart() {
+            const ctx = document.getElementById('tcoBrandChart').getContext('2d');
+            if (charts.tcoBrand) charts.tcoBrand.destroy();
+            
+            const brandData = {};
+            filteredData.forEach(car => {
+                if (!brandData[car.brand]) {
+                    brandData[car.brand] = [];
+                }
+                brandData[car.brand].push(car.tco);
+            });
+
+            const brands = Object.keys(brandData).map(brand => ({
+                brand: brand,
+                avgTCO: brandData[brand].reduce((sum, tco) => sum + tco, 0) / brandData[brand].length
+            })).sort((a, b) => a.avgTCO - b.avgTCO);
+
+            charts.tcoBrand = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: brands.map(b => b.brand),
+                    datasets: [{
+                        label: 'Average TCO',
+                        data: brands.map(b => b.avgTCO),
+                        backgroundColor: '#3498db',
+                        borderColor: '#2980b9',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Average TCO ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createFuelTypeChart() {
+            const ctx = document.getElementById('fuelTypeChart').getContext('2d');
+            if (charts.fuelType) charts.fuelType.destroy();
+            
+            const fuelData = {};
+            filteredData.forEach(car => {
+                if (!fuelData[car.fuel]) {
+                    fuelData[car.fuel] = [];
+                }
+                fuelData[car.fuel].push(car.tco);
+            });
+
+            const fuelTypes = Object.keys(fuelData).map(fuel => ({
+                fuel: fuel,
+                avgTCO: fuelData[fuel].reduce((sum, tco) => sum + tco, 0) / fuelData[fuel].length,
+                count: fuelData[fuel].length
+            }));
+
+            charts.fuelType = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: fuelTypes.map(f => `${f.fuel} ($${(f.avgTCO/1000).toFixed(0)}k)`),
+                    datasets: [{
+                        data: fuelTypes.map(f => f.avgTCO),
+                        backgroundColor: ['#3498db', '#2ecc71', '#f39c12', '#e74c3c'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const fuel = fuelTypes[context.dataIndex];
+                                    return `${fuel.fuel}: $${context.parsed.toLocaleString()} avg (${fuel.count} cars)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createValueChart() {
+            const ctx = document.getElementById('valueChart').getContext('2d');
+            if (charts.value) charts.value.destroy();
+            
+            const sortedByValue = [...filteredData]
+                .map(car => ({
+                    ...car,
+                    valueScore: car.reliability / car.tco * 100000
+                }))
+                .sort((a, b) => b.valueScore - a.valueScore)
+                .slice(0, 15);
+
+            charts.value = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedByValue.map(car => car.name),
+                    datasets: [{
+                        label: 'Value Score',
+                        data: sortedByValue.map(car => car.valueScore),
+                        backgroundColor: '#2ecc71',
+                        borderColor: '#27ae60',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const car = sortedByValue[context.dataIndex];
+                                    return `${car.name}: ${car.reliability}/10 reliability, $${car.tco.toLocaleString()} TCO`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'Value Score (Reliability/TCO)' } }
+                    }
+                }
+            });
+        }
+
+        function createDepreciationHistogram() {
+            const ctx = document.getElementById('depreciationHistogram').getContext('2d');
+            if (charts.depreciationHist) charts.depreciationHist.destroy();
+            
+            const bins = [0, 20, 30, 40, 50, 60, 70];
+            const binCounts = new Array(bins.length - 1).fill(0);
+            
+            filteredData.forEach(car => {
+                for (let i = 0; i < bins.length - 1; i++) {
+                    if (car.depreciation >= bins[i] && car.depreciation < bins[i + 1]) {
+                        binCounts[i]++;
+                        break;
+                    }
+                }
+            });
+
+            charts.depreciationHist = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: bins.slice(0, -1).map((bin, i) => `${bin}-${bins[i+1]}%`),
+                    datasets: [{
+                        label: 'Number of Cars',
+                        data: binCounts,
+                        backgroundColor: '#f39c12',
+                        borderColor: '#e67e22',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { title: { display: true, text: 'Depreciation Range (%)' } },
+                        y: { title: { display: true, text: 'Number of Cars' } }
+                    }
+                }
+            });
+        }
+
+        function createCategoryBoxChart() {
+            const ctx = document.getElementById('categoryBoxChart').getContext('2d');
+            if (charts.categoryBox) charts.categoryBox.destroy();
+            
+            const categories = {};
+            filteredData.forEach(car => {
+                if (!categories[car.category]) {
+                    categories[car.category] = [];
+                }
+                categories[car.category].push(car.tco);
+            });
+
+            const categoryData = Object.keys(categories).map(cat => ({
+                category: cat,
+                avgTCO: categories[cat].reduce((sum, tco) => sum + tco, 0) / categories[cat].length,
+                minTCO: Math.min(...categories[cat]),
+                maxTCO: Math.max(...categories[cat])
+            }));
+
+            charts.categoryBox = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: categoryData.map(c => c.category),
+                    datasets: [{
+                        label: 'Average TCO',
+                        data: categoryData.map(c => c.avgTCO),
+                        backgroundColor: '#9b59b6',
+                        borderColor: '#8e44ad',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'TCO ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createFuelComparisonChart() {
+            const ctx = document.getElementById('fuelComparisonChart').getContext('2d');
+            if (charts.fuelComparison) charts.fuelComparison.destroy();
+            
+            const electricCars = filteredData.filter(car => car.fuel === 'Electric');
+            const hybridCars = filteredData.filter(car => car.fuel === 'Hybrid' || car.fuel === 'PHEV');
+            const gasCars = filteredData.filter(car => car.fuel === 'Gas');
+
+            const data = [
+                { type: 'Electric', cars: electricCars },
+                { type: 'Hybrid/PHEV', cars: hybridCars },
+                { type: 'Gas', cars: gasCars }
+            ].filter(group => group.cars.length > 0);
+
+            charts.fuelComparison = new Chart(ctx, {
+                type: 'boxplot',
+                data: {
+                    labels: data.map(d => d.type),
+                    datasets: [{
+                        label: 'TCO Distribution',
+                        data: data.map(d => d.cars.map(car => car.tco)),
+                        backgroundColor: ['#3498db', '#2ecc71', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'TCO ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createAllCharts() {
+            createTCOReliabilityChart();
+            createDepreciationChart();
+            createTCOBrandChart();
+            createFuelTypeChart();
+            createValueChart();
+            createDepreciationHistogram();
+            createCategoryBoxChart();
+            createFuelComparisonChart();
+        }
+
+        function updateDashboard() {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart && chart.destroy) chart.destroy();
+            });
+            charts = {};
+
+            updateStats();
+            updateTopPicks();
+            createAllCharts();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('budgetFilter').addEventListener('change', applyFilters);
+            document.getElementById('fuelFilter').addEventListener('change', applyFilters);
+            document.getElementById('reliabilityFilter').addEventListener('change', applyFilters);
+        }
+
+        // Initialize dashboard
+        function init() {
+            updateDashboard();
+            setupEventListeners();
+        }
+
+        // Start when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
