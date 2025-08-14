@@ -1,0 +1,129 @@
+name: Car Price Scraper
+
+on:
+  schedule:
+    # Run daily at 2 AM PST (10 AM UTC)
+    - cron: '0 10 * * *'
+  workflow_dispatch:  # Allow manual triggering
+  
+permissions:
+  contents: write  # Allow pushing to repository
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium
+        playwright install-deps
+        
+    - name: Run car price scraper
+      run: |
+        python car_scraper.py
+        
+    - name: Check if live_prices.json was created
+      run: |
+        if [ -f "live_prices.json" ]; then
+          echo "✅ Scraper completed successfully"
+          echo "📊 Data points found: $(jq '.total_cars' live_prices.json)"
+          echo "🎯 Successful scrapes: $(jq '.successful_scrapes' live_prices.json)"
+        else
+          echo "❌ Scraper failed - no output file created"
+          exit 1
+        fi
+        
+    - name: Validate JSON output
+      run: |
+        # Check if JSON is valid
+        jq empty live_prices.json
+        echo "✅ JSON validation passed"
+        
+        # Check required fields
+        required_fields=("timestamp" "total_cars" "cars")
+        for field in "${required_fields[@]}"; do
+          if jq -e "has(\"$field\")" live_prices.json > /dev/null; then
+            echo "✅ Required field '$field' found"
+          else
+            echo "❌ Missing required field: $field"
+            exit 1
+          fi
+        done
+        
+    - name: Update index.html with latest data
+      run: |
+        # Update the timestamp in index.html to trigger refresh
+        sed -i "s/Last updated: [^<]*/Last updated: $(date)/" index.html || true
+        
+    - name: Commit and push updated data
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add files
+        git add live_prices.json index.html
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          # Create commit message with scraping results
+          TOTAL_CARS=$(jq -r '.total_cars' live_prices.json)
+          SUCCESSFUL=$(jq -r '.successful_scrapes' live_prices.json)
+          TIMESTAMP=$(jq -r '.timestamp' live_prices.json)
+          
+          git commit -m "🤖 Auto-update car prices - $(date '+%Y-%m-%d')
+
+📊 Scraped $TOTAL_CARS cars, $SUCCESSFUL successful
+🕐 Last updated: $TIMESTAMP
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>"
+          
+          # Push changes
+          git push
+          echo "✅ Updated data pushed to repository"
+        fi
+        
+    - name: Create scraping summary
+      run: |
+        echo "## Car Price Scraping Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total cars processed:** $(jq '.total_cars' live_prices.json)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Successful scrapes:** $(jq '.successful_scrapes' live_prices.json)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp:** $(jq -r '.timestamp' live_prices.json)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Dashboard URL:** https://ljeytl.github.io/car-analysis-dashboard/" >> $GITHUB_STEP_SUMMARY
+        
+        # Add sample data
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Sample Results" >> $GITHUB_STEP_SUMMARY
+        jq -r '.cars[0:3][] | "- **\(.make) \(.model):** $\(.current_price | tostring) (\(.listings_count) listings)"' live_prices.json >> $GITHUB_STEP_SUMMARY
+        
+    - name: Upload scraper logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: scraper-logs
+        path: scraper.log
+        retention-days: 7

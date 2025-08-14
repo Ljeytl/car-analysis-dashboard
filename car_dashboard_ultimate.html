@@ -123,6 +123,53 @@
             margin-top: var(--spacing-xs);
         }
         
+        .refresh-btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: var(--spacing-sm);
+            transition: all var(--transition-normal);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .refresh-btn:hover {
+            background: var(--accent-green);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+        }
+        
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+        
+        .refresh-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .live-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            margin-left: 4px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
         .filters {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -804,8 +851,11 @@
         <h1>🚗 Ultimate Car Analysis Dashboard</h1>
         <p class="subtitle">
             <strong>3-Year TCO Analysis: Multiple Model Years & Real Market Data</strong><br>
-            Compare used vs new across different model years | KBB & Edmunds pricing<br>
-            TCO = Purchase Price + Depreciation Loss + Fuel + Maintenance + Insurance (3 years)
+            <span class="header-subtitle">Compare used vs new across different model years | KBB & Edmunds pricing</span><br>
+            TCO = Purchase Price + Depreciation Loss + Fuel + Maintenance + Insurance (3 years)<br>
+            <button id="refreshDataBtn" class="refresh-btn" onclick="refreshData()" title="Refresh live price data">
+                🔄 Refresh Live Prices
+            </button>
         </p>
         
         <div class="filters">
@@ -1006,314 +1056,238 @@
         Chart.defaults.scale.ticks.color = '#a0aec0';
         Chart.defaults.scale.title.color = '#e2e8f0';
 
-        // CORRECTED dataset with proper TCO calculations
-        const carData = [
-            {name: 'Tesla Model 3 (2020)', year: '2020', price: 22000, depreciation: 35, fuel: 'Electric', brand: 'Tesla', category: 'Electric', reliability: 8, 
-             fuelCost: 825, maintenanceCost: 900, insuranceCost: 1200, founderCredibility: 6,
-             tco: 22000 * 0.35 + 825 * 3 + 900 * 3 + 1200 * 3, // 7700 + 2475 + 2700 + 3600 = 16475
-             notes: "2020: Already depreciated, better TCO value"},
-             
-            {name: 'Tesla Model 3 (2022)', year: '2022', price: 25500, depreciation: 45, fuel: 'Electric', brand: 'Tesla', category: 'Electric', reliability: 8, 
-             fuelCost: 825, maintenanceCost: 900, insuranceCost: 1200, founderCredibility: 5,
-             tco: 25500 * 0.45 + 825 * 3 + 900 * 3 + 1200 * 3, // 11475 + 2475 + 2700 + 3600 = 20250
-             notes: "2022: Still massive depreciation ahead"},
-             
-            {name: 'Tesla Model 3 (2025)', year: '2025', price: 40000, depreciation: 40, fuel: 'Electric', brand: 'Tesla', category: 'Electric', reliability: 8, 
-             fuelCost: 825, maintenanceCost: 700, insuranceCost: 1200, founderCredibility: 5,
-             tco: 40000 * 0.40 + 825 * 3 + 700 * 3 + 1200 * 3, // 16000 + 2475 + 2100 + 3600 = 24175
-             notes: "2025: New car penalty + depreciation hit"},
+        // Car data loaded dynamically from CSV and live prices
+        let carData = [];
+        let livePricesData = null;
+        let lastUpdated = null;
+        
+        // Function to load live prices data
+        async function loadLivePrices() {
+            try {
+                const response = await fetch('./live_prices.json');
+                if (response.ok) {
+                    livePricesData = await response.json();
+                    lastUpdated = new Date(livePricesData.timestamp);
+                    console.log(`Loaded live prices: ${livePricesData.total_cars} cars, updated ${lastUpdated.toLocaleString()}`);
+                    updateLastUpdatedDisplay();
+                    return true;
+                }
+            } catch (error) {
+                console.log('Live prices not available, using static data:', error.message);
+            }
+            return false;
+        }
+        
+        // Function to update last updated display
+        function updateLastUpdatedDisplay() {
+            const headerSubtitle = document.querySelector('.header-subtitle');
+            if (headerSubtitle && lastUpdated) {
+                const timeAgo = getTimeAgo(lastUpdated);
+                headerSubtitle.innerHTML = `Real-time market data • Last updated: ${timeAgo} • ${livePricesData?.successful_scrapes || 0}/${livePricesData?.total_cars || 0} live sources`;
+            }
+        }
+        
+        // Function to get human readable time ago
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
             
-            {name: 'Tesla Model Y (2023)', year: '2023', price: 37500, depreciation: 32, fuel: 'Electric', brand: 'Tesla', category: 'Electric', reliability: 8,
-             fuelCost: 825, maintenanceCost: 900, insuranceCost: 1350,
-             tco: 37500 * 0.32 + 825 * 3 + 900 * 3 + 1350 * 3, // 12000 + 2475 + 2700 + 4050 = 21225
-             notes: "2023: SUV premium + depreciation = expensive TCO"},
-             
-            {name: 'Tesla Model S (2020)', year: '2020', price: 45000, depreciation: 30, fuel: 'Electric', brand: 'Tesla', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 1200, insuranceCost: 1500,
-             tco: 45000 * 0.30 + 825 * 3 + 1200 * 3 + 1500 * 3, // 13500 + 2475 + 3600 + 4500 = 24075
-             notes: "2020: Used luxury EV with flattened depreciation"},
-             
-            {name: 'Tesla Model S (2024)', year: '2024', price: 75000, depreciation: 40, fuel: 'Electric', brand: 'Tesla', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 800, insuranceCost: 1500,
-             tco: 75000 * 0.40 + 825 * 3 + 800 * 3 + 1500 * 3, // 30000 + 2475 + 2400 + 4500 = 39375
-             notes: "2024: New luxury EV with full depreciation hit"},
-             
-            {name: 'Chevrolet Bolt EV', price: 17000, depreciation: 55, fuel: 'Electric', brand: 'Chevrolet', category: 'Electric', reliability: 6,
-             fuelCost: 825, maintenanceCost: 1800, insuranceCost: 900, // Higher maintenance due to GM reliability issues
-             tco: 17000 * 0.55 + 825 * 3 + 1800 * 3 + 900 * 3, // 9350 + 2475 + 5400 + 2700 = 19925
-             notes: "Massive depreciation + GM reliability issues = hidden costs"},
-             
-            {name: 'Chevrolet Bolt EUV', price: 20000, depreciation: 55, fuel: 'Electric', brand: 'Chevrolet', category: 'Electric', reliability: 6,
-             fuelCost: 825, maintenanceCost: 1800, insuranceCost: 1000,
-             tco: 20000 * 0.55 + 825 * 3 + 1800 * 3 + 1000 * 3, // 11000 + 2475 + 5400 + 3000 = 21875
-             notes: "GM quality control problems show up after year 2"},
-             
-            {name: 'Hyundai Ioniq 5', price: 26000, depreciation: 52, fuel: 'Electric', brand: 'Hyundai', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 1200, insuranceCost: 1050,
-             tco: 26000 * 0.52 + 825 * 3 + 1200 * 3 + 1050 * 3, // 13520 + 2475 + 3600 + 3150 = 22745
-             notes: "Korean EV depreciation is brutal"},
-             
-            {name: 'Kia EV6', price: 36000, depreciation: 42, fuel: 'Electric', brand: 'Kia', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 1200, insuranceCost: 1050,
-             tco: 36000 * 0.42 + 825 * 3 + 1200 * 3 + 1050 * 3, // 15120 + 2475 + 3600 + 3150 = 24345
-             notes: "Premium EV pricing + depreciation"},
-             
-            {name: 'BMW i4 (2022)', year: '2022', price: 42000, depreciation: 25, fuel: 'Electric', brand: 'BMW', category: 'Electric', reliability: 8,
-             fuelCost: 825, maintenanceCost: 1500, insuranceCost: 1350,
-             tco: 42000 * 0.25 + 825 * 3 + 1500 * 3 + 1350 * 3, // 10500 + 2475 + 4500 + 4050 = 21525
-             notes: "2022: Used BMW EV, reduced depreciation"},
-             
-            {name: 'BMW i4 (2024)', year: '2024', price: 57000, depreciation: 32, fuel: 'Electric', brand: 'BMW', category: 'Electric', reliability: 8,
-             fuelCost: 825, maintenanceCost: 1200, insuranceCost: 1350,
-             tco: 57000 * 0.32 + 825 * 3 + 1200 * 3 + 1350 * 3, // 18240 + 2475 + 3600 + 4050 = 28365
-             notes: "2024: New BMW EV with luxury depreciation"},
-             
-            {name: 'Nissan Leaf', price: 18500, depreciation: 60, fuel: 'Electric', brand: 'Nissan', category: 'Electric', reliability: 5,
-             fuelCost: 825, maintenanceCost: 1500, insuranceCost: 900, // Battery replacement risk
-             tco: 18500 * 0.60 + 825 * 3 + 1500 * 3 + 900 * 3, // 11100 + 2475 + 4500 + 2700 = 20775
-             notes: "Battery degradation = replacement costs"},
-             
-            {name: 'Volkswagen ID.4', price: 30000, depreciation: 45, fuel: 'Electric', brand: 'Volkswagen', category: 'Electric', reliability: 6,
-             fuelCost: 825, maintenanceCost: 2100, insuranceCost: 1050, // VW reliability issues
-             tco: 30000 * 0.45 + 825 * 3 + 2100 * 3 + 1050 * 3, // 13500 + 2475 + 6300 + 3150 = 25425
-             notes: "German EV teething problems"},
-             
-            // Now the hybrids and PHEVs (better TCO due to less depreciation)
-            {name: 'Toyota RAV4 Hybrid', price: 30500, depreciation: 15, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid', reliability: 9,
-             fuelCost: 2400, maintenanceCost: 1200, insuranceCost: 600, founderCredibility: 6, // Toyota reliability
-             tco: 30500 * 0.15 + 2400 * 3 + 1200 * 3 + 600 * 3, // 4575 + 7200 + 3600 + 1800 = 17175
-             notes: "Best value - minimal depreciation + Toyota reliability + outdoor credibility"},
-             
-            {name: 'Toyota Prius', price: 23000, depreciation: 25, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid', reliability: 9,
-             fuelCost: 1800, maintenanceCost: 900, insuranceCost: 600,
-             tco: 23000 * 0.25 + 1800 * 3 + 900 * 3 + 600 * 3, // 5750 + 5400 + 2700 + 1800 = 15650
-             notes: "Maximum efficiency + bulletproof reliability"},
-             
-            {name: 'Toyota Prius Prime', price: 24000, depreciation: 28, fuel: 'PHEV', brand: 'Toyota', category: 'Hybrid', reliability: 9,
-             fuelCost: 1050, maintenanceCost: 1050, insuranceCost: 750,
-             tco: 24000 * 0.28 + 1050 * 3 + 1050 * 3 + 750 * 3, // 6720 + 3150 + 3150 + 2250 = 15270
-             notes: "PHEV sweet spot - low fuel + low depreciation"},
-             
-            {name: 'Toyota Camry Hybrid', price: 27500, depreciation: 22, fuel: 'Hybrid', brand: 'Toyota', category: 'Hybrid', reliability: 9,
-             fuelCost: 1800, maintenanceCost: 1200, insuranceCost: 600,
-             tco: 27500 * 0.22 + 1800 * 3 + 1200 * 3 + 600 * 3, // 6050 + 5400 + 3600 + 1800 = 16850
-             notes: "Sedan efficiency + Toyota quality"},
-             
-            {name: 'Honda Accord Hybrid (2022)', year: '2022', price: 26000, depreciation: 25, fuel: 'Hybrid', brand: 'Honda', category: 'Hybrid', reliability: 9,
-             fuelCost: 1950, maintenanceCost: 1500, insuranceCost: 750,
-             tco: 26000 * 0.25 + 1950 * 3 + 1500 * 3 + 750 * 3, // 6500 + 5850 + 4500 + 2250 = 19100
-             notes: "2022: Honda reliability with hybrid efficiency"},
-             
-            {name: 'Honda CR-V Hybrid (2023)', year: '2023', price: 29000, depreciation: 24, fuel: 'Hybrid', brand: 'Honda', category: 'SUV', reliability: 8,
-             fuelCost: 2550, maintenanceCost: 1500, insuranceCost: 750,
-             tco: 29000 * 0.24 + 2550 * 3 + 1500 * 3 + 750 * 3, // 6960 + 7650 + 4500 + 2250 = 21360
-             notes: "SUV practicality + hybrid efficiency"},
-             
-            {name: 'Lexus ES Hybrid (2021)', year: '2021', price: 34000, depreciation: 27, fuel: 'Hybrid', brand: 'Lexus', category: 'Hybrid', reliability: 9,
-             fuelCost: 2100, maintenanceCost: 1200, insuranceCost: 900,
-             tco: 34000 * 0.27 + 2100 * 3 + 1200 * 3 + 900 * 3, // 9180 + 6300 + 3600 + 2700 = 21780
-             notes: "Luxury hybrid with Toyota reliability"},
-             
-            {name: 'BMW 330e', price: 25250, depreciation: 38, fuel: 'PHEV', brand: 'BMW', category: 'Luxury', reliability: 7,
-             fuelCost: 1200, maintenanceCost: 2400, insuranceCost: 1050, // BMW maintenance costs
-             tco: 25250 * 0.38 + 1200 * 3 + 2400 * 3 + 1050 * 3, // 9595 + 3600 + 7200 + 3150 = 23545
-             notes: "BMW service costs kill PHEV savings"},
-             
-            // Gas cars (moderate TCO)
-            {name: 'Honda Civic (2019)', year: '2019', price: 16000, depreciation: 25, fuel: 'Gas', brand: 'Honda', category: 'Compact', reliability: 9,
-             fuelCost: 3000, maintenanceCost: 1200, insuranceCost: 600, founderCredibility: 4,
-             tco: 16000 * 0.25 + 3000 * 3 + 1200 * 3 + 600 * 3, // 4000 + 9000 + 3600 + 1800 = 18400
-             notes: "2019: Great value, depreciation curve flattened"},
-             
-            {name: 'Honda Civic (2022)', year: '2022', price: 21000, depreciation: 31, fuel: 'Gas', brand: 'Honda', category: 'Compact', reliability: 9,
-             fuelCost: 3000, maintenanceCost: 1200, insuranceCost: 600, founderCredibility: 4,
-             tco: 21000 * 0.31 + 3000 * 3 + 1200 * 3 + 600 * 3, // 6510 + 9000 + 3600 + 1800 = 20910
-             notes: "2022: Moderate depreciation remaining"},
-             
-            {name: 'Honda Civic (2024)', year: '2024', price: 28000, depreciation: 35, fuel: 'Gas', brand: 'Honda', category: 'Compact', reliability: 9,
-             fuelCost: 3000, maintenanceCost: 1000, insuranceCost: 600, founderCredibility: 4,
-             tco: 28000 * 0.35 + 3000 * 3 + 1000 * 3 + 600 * 3, // 9800 + 9000 + 3000 + 1800 = 23600
-             notes: "2024: New car premium + full depreciation"},
-             
-            {name: 'Genesis G70 (2019)', year: '2019', price: 19500, depreciation: 25, fuel: 'Gas', brand: 'Genesis', category: 'Luxury', reliability: 8,
-             fuelCost: 4200, maintenanceCost: 1800, insuranceCost: 900, founderCredibility: 7,
-             tco: 19500 * 0.25 + 4200 * 3 + 1800 * 3 + 900 * 3, // 4875 + 12600 + 5400 + 2700 = 25575
-             notes: "2019: Used luxury sedan, depreciation slowed"},
-             
-            {name: 'Genesis G70 (2021)', year: '2021', price: 24500, depreciation: 43, fuel: 'Gas', brand: 'Genesis', category: 'Luxury', reliability: 8,
-             fuelCost: 4200, maintenanceCost: 1800, insuranceCost: 900, founderCredibility: 7, // Free maintenance first 3 years
-             tco: 24500 * 0.43 + 4200 * 3 + 1800 * 3 + 900 * 3, // 10535 + 12600 + 5400 + 2700 = 31235
-             notes: "2021: Still depreciating fast + premium fuel"},
-             
-            {name: 'Genesis G70 (2024)', year: '2024', price: 38000, depreciation: 45, fuel: 'Gas', brand: 'Genesis', category: 'Luxury', reliability: 8,
-             fuelCost: 4200, maintenanceCost: 1200, insuranceCost: 900, founderCredibility: 8,
-             tco: 38000 * 0.45 + 4200 * 3 + 1200 * 3 + 900 * 3, // 17100 + 12600 + 3600 + 2700 = 36000
-             notes: "2024: New luxury sedan with full depreciation hit"},
-             
-            {name: 'BMW 330i', price: 26000, depreciation: 28, fuel: 'Gas', brand: 'BMW', category: 'Luxury', reliability: 7,
-             fuelCost: 3600, maintenanceCost: 2400, insuranceCost: 1050,
-             tco: 26000 * 0.28 + 3600 * 3 + 2400 * 3 + 1050 * 3, // 7280 + 10800 + 7200 + 3150 = 28430
-             notes: "BMW maintenance premium"},
-             
-            {name: 'Audi A4', price: 27000, depreciation: 30, fuel: 'Gas', brand: 'Audi', category: 'Luxury', reliability: 7,
-             fuelCost: 3600, maintenanceCost: 2700, insuranceCost: 1200,
-             tco: 27000 * 0.30 + 3600 * 3 + 2700 * 3 + 1200 * 3, // 8100 + 10800 + 8100 + 3600 = 30600
-             notes: "German luxury = expensive everything"},
-             
-            {name: 'Mercedes C300', price: 30000, depreciation: 32, fuel: 'Gas', brand: 'Mercedes', category: 'Luxury', reliability: 6,
-             fuelCost: 3900, maintenanceCost: 3000, insuranceCost: 1200,
-             tco: 30000 * 0.32 + 3900 * 3 + 3000 * 3 + 1200 * 3, // 9600 + 11700 + 9000 + 3600 = 33900
-             notes: "Mercedes service costs are brutal"},
-             
-            {name: 'Lexus IS', price: 27000, depreciation: 25, fuel: 'Gas', brand: 'Lexus', category: 'Luxury', reliability: 9,
-             fuelCost: 4500, maintenanceCost: 1200, insuranceCost: 900,
-             tco: 27000 * 0.25 + 4500 * 3 + 1200 * 3 + 900 * 3, // 6750 + 13500 + 3600 + 2700 = 26550
-             notes: "Premium fuel costs but Toyota reliability"},
-             
-            {name: 'Acura TLX', price: 29500, depreciation: 28, fuel: 'Gas', brand: 'Acura', category: 'Luxury', reliability: 8,
-             fuelCost: 4200, maintenanceCost: 1500, insuranceCost: 900,
-             tco: 29500 * 0.28 + 4200 * 3 + 1500 * 3 + 900 * 3, // 8260 + 12600 + 4500 + 2700 = 28060
-             notes: "Honda luxury with reasonable costs"},
-             
-            {name: 'Subaru Outback', price: 27000, depreciation: 28, fuel: 'Gas', brand: 'Subaru', category: 'SUV', reliability: 9,
-             fuelCost: 3300, maintenanceCost: 2100, insuranceCost: 1200,
-             tco: 27000 * 0.28 + 3300 * 3 + 2100 * 3 + 1200 * 3, // 7560 + 9900 + 6300 + 3600 = 27360
-             notes: "AWD utility with head gasket risks"},
-             
-            {name: 'Mazda CX-5', price: 24000, depreciation: 30, fuel: 'Gas', brand: 'Mazda', category: 'SUV', reliability: 8,
-             fuelCost: 3600, maintenanceCost: 1800, insuranceCost: 1050,
-             tco: 24000 * 0.30 + 3600 * 3 + 1800 * 3 + 1050 * 3, // 7200 + 10800 + 5400 + 3150 = 26550
-             notes: "Solid SUV with moderate costs"},
-             
-            // Sports cars (high TCO due to everything)
-            {name: 'Porsche Cayman', price: 44500, depreciation: 22, fuel: 'Gas', brand: 'Porsche', category: 'Sports', reliability: 9,
-             fuelCost: 4800, maintenanceCost: 3600, insuranceCost: 2100,
-             tco: 44500 * 0.22 + 4800 * 3 + 3600 * 3 + 2100 * 3, // 9790 + 14400 + 10800 + 6300 = 41290
-             notes: "Porsche everything = expensive everything"},
-             
-            {name: 'BMW M240i', price: 36000, depreciation: 30, fuel: 'Gas', brand: 'BMW', category: 'Sports', reliability: 7,
-             fuelCost: 4200, maintenanceCost: 2700, insuranceCost: 1500,
-             tco: 36000 * 0.30 + 4200 * 3 + 2700 * 3 + 1500 * 3, // 10800 + 12600 + 8100 + 4500 = 36000
-             notes: "Performance + BMW tax"},
-             
-            {name: 'Toyota GR86', price: 28500, depreciation: 25, fuel: 'Gas', brand: 'Toyota', category: 'Sports', reliability: 8,
-             fuelCost: 4800, maintenanceCost: 1200, insuranceCost: 1200,
-             tco: 28500 * 0.25 + 4800 * 3 + 1200 * 3 + 1200 * 3, // 7125 + 14400 + 3600 + 3600 = 28725
-             notes: "Sports car fun with Toyota reliability"},
-             
-            // NEW ADDITIONS: Popular EVs, Budget Champions, Cheap Luxury
-            {name: 'Ford Mustang Mach-E (2022)', year: '2022', price: 32000, depreciation: 42, fuel: 'Electric', brand: 'Ford', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 1200, insuranceCost: 1050,
-             tco: 32000 * 0.42 + 825 * 3 + 1200 * 3 + 1050 * 3, // 13440 + 2475 + 3600 + 3150 = 22665
-             notes: "2022: Used American EV, some depreciation absorbed"},
-             
-            {name: 'Ford Mustang Mach-E (2024)', year: '2024', price: 42000, depreciation: 50, fuel: 'Electric', brand: 'Ford', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 1000, insuranceCost: 1050,
-             tco: 42000 * 0.50 + 825 * 3 + 1000 * 3 + 1050 * 3, // 21000 + 2475 + 3000 + 3150 = 29625
-             notes: "2024: New Mach-E with brutal depreciation ahead"},
-             
-            {name: 'Polestar 2 (2022)', year: '2022', price: 35000, depreciation: 35, fuel: 'Electric', brand: 'Polestar', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 1500, insuranceCost: 1200,
-             tco: 35000 * 0.35 + 825 * 3 + 1500 * 3 + 1200 * 3, // 12250 + 2475 + 4500 + 3600 = 22825
-             notes: "2022: Used Swedish EV, better value than new"},
-             
-            {name: 'Polestar 2 (2024)', year: '2024', price: 45000, depreciation: 45, fuel: 'Electric', brand: 'Polestar', category: 'Electric', reliability: 7,
-             fuelCost: 825, maintenanceCost: 1200, insuranceCost: 1200,
-             tco: 45000 * 0.45 + 825 * 3 + 1200 * 3 + 1200 * 3, // 20250 + 2475 + 3600 + 3600 = 29925
-             notes: "2024: New Polestar with premium pricing"},
-             
-            {name: 'Nissan Ariya', price: 37500, depreciation: 50, fuel: 'Electric', brand: 'Nissan', category: 'Electric', reliability: 6,
-             fuelCost: 825, maintenanceCost: 1350, insuranceCost: 1050,
-             tco: 37500 * 0.50 + 825 * 3 + 1350 * 3 + 1050 * 3, // 18750 + 2475 + 4050 + 3150 = 28425
-             notes: "Newer Nissan EV SUV, better than Leaf reliability"},
-             
-            {name: 'Nissan Sentra', price: 16500, depreciation: 38, fuel: 'Gas', brand: 'Nissan', category: 'Budget', reliability: 7,
-             fuelCost: 3150, maintenanceCost: 1350, insuranceCost: 750,
-             tco: 16500 * 0.38 + 3150 * 3 + 1350 * 3 + 750 * 3, // 6270 + 9450 + 4050 + 2250 = 22020
-             notes: "Ultra-budget reliable sedan option"},
-             
-            {name: 'Kia Forte', price: 14000, depreciation: 42, fuel: 'Gas', brand: 'Kia', category: 'Budget', reliability: 7,
-             fuelCost: 3000, maintenanceCost: 1500, insuranceCost: 900,
-             tco: 14000 * 0.42 + 3000 * 3 + 1500 * 3 + 900 * 3, // 5880 + 9000 + 4500 + 2700 = 22080
-             notes: "Value compact sedan with 10-year warranty"},
-             
-            {name: 'Hyundai Accent', price: 12500, depreciation: 45, fuel: 'Gas', brand: 'Hyundai', category: 'Budget', reliability: 6,
-             fuelCost: 3300, maintenanceCost: 1650, insuranceCost: 1050,
-             tco: 12500 * 0.45 + 3300 * 3 + 1650 * 3 + 1050 * 3, // 5625 + 9900 + 4950 + 3150 = 23625
-             notes: "Ultra-budget option, discontinued 2023"},
-             
-            {name: 'Cadillac CT4', price: 26000, depreciation: 40, fuel: 'Gas', brand: 'Cadillac', category: 'Luxury', reliability: 6,
-             fuelCost: 3900, maintenanceCost: 2400, insuranceCost: 1200,
-             tco: 26000 * 0.40 + 3900 * 3 + 2400 * 3 + 1200 * 3, // 10400 + 11700 + 7200 + 3600 = 32900
-             notes: "American luxury revival, competitive pricing"},
-             
-            {name: 'Lexus NX Hybrid', price: 36000, depreciation: 20, fuel: 'Hybrid', brand: 'Lexus', category: 'Luxury', reliability: 9,
-             fuelCost: 2700, maintenanceCost: 1500, insuranceCost: 1050,
-             tco: 36000 * 0.20 + 2700 * 3 + 1500 * 3 + 1050 * 3, // 7200 + 8100 + 4500 + 3150 = 22950
-             notes: "Reliable luxury hybrid SUV, excellent retention"},
-             
-            {name: 'Range Rover Evoque (2019)', year: '2019', price: 28000, depreciation: 35, fuel: 'Gas', brand: 'Range Rover', category: 'Luxury', reliability: 5,
-             fuelCost: 4650, maintenanceCost: 3600, insuranceCost: 1800, founderCredibility: 9,
-             tco: 28000 * 0.35 + 4650 * 3 + 3600 * 3 + 1800 * 3, // 9800 + 13950 + 10800 + 5400 = 39950
-             notes: "2019: Used Range Rover, still stylish but used"},
-             
-            {name: 'Range Rover Evoque (2024)', year: '2024', price: 48000, depreciation: 50, fuel: 'Gas', brand: 'Range Rover', category: 'Luxury', reliability: 5,
-             fuelCost: 4650, maintenanceCost: 3000, insuranceCost: 1800, founderCredibility: 10,
-             tco: 48000 * 0.50 + 4650 * 3 + 3000 * 3 + 1800 * 3, // 24000 + 13950 + 9000 + 5400 = 52350
-             notes: "2024: New Range Rover, maximum style, maximum cost"},
-             
-            // More BMW variants (high style)
-            {name: 'BMW M240i (2020)', year: '2020', price: 28000, depreciation: 25, fuel: 'Gas', brand: 'BMW', category: 'Sports', reliability: 7,
-             fuelCost: 4200, maintenanceCost: 2700, insuranceCost: 1500, founderCredibility: 8,
-             tco: 28000 * 0.25 + 4200 * 3 + 2700 * 3 + 1500 * 3, // 7000 + 12600 + 8100 + 4500 = 32200
-             notes: "2020: Used BMW performance, good value"},
-             
-            {name: 'BMW M240i (2024)', year: '2024', price: 46000, depreciation: 35, fuel: 'Gas', brand: 'BMW', category: 'Sports', reliability: 7,
-             fuelCost: 4200, maintenanceCost: 2400, insuranceCost: 1500, founderCredibility: 9,
-             tco: 46000 * 0.35 + 4200 * 3 + 2400 * 3 + 1500 * 3, // 16100 + 12600 + 7200 + 4500 = 40400
-             notes: "2024: New BMW performance with depreciation hit"},
-             
-            // More Honda variants (practical)
-            {name: 'Honda Civic Type R (2020)', year: '2020', price: 32000, depreciation: 20, fuel: 'Gas', brand: 'Honda', category: 'Sports', reliability: 9,
-             fuelCost: 3600, maintenanceCost: 1500, insuranceCost: 1200, founderCredibility: 7,
-             tco: 32000 * 0.20 + 3600 * 3 + 1500 * 3 + 1200 * 3, // 6400 + 10800 + 4500 + 3600 = 25300
-             notes: "2020: Used Type R, excellent retention"},
-             
-            {name: 'Honda Civic Type R (2023)', year: '2023', price: 42000, depreciation: 25, fuel: 'Gas', brand: 'Honda', category: 'Sports', reliability: 9,
-             fuelCost: 3600, maintenanceCost: 1200, insuranceCost: 1200, founderCredibility: 8,
-             tco: 42000 * 0.25 + 3600 * 3 + 1200 * 3 + 1200 * 3, // 10500 + 10800 + 3600 + 3600 = 28500
-             notes: "2023: New Type R with markup premium"},
-             
-            // Maximum style cars (Porsche)
-            {name: 'Porsche 911 (2019)', year: '2019', price: 85000, depreciation: 15, fuel: 'Gas', brand: 'Porsche', category: 'Sports', reliability: 9,
-             fuelCost: 5400, maintenanceCost: 4000, insuranceCost: 2500, founderCredibility: 10,
-             tco: 85000 * 0.15 + 5400 * 3 + 4000 * 3 + 2500 * 3, // 12750 + 16200 + 12000 + 7500 = 48450
-             notes: "2019: Used 911, ultimate founder car, excellent retention"},
-             
-            {name: 'Porsche 911 (2024)', year: '2024', price: 115000, depreciation: 20, fuel: 'Gas', brand: 'Porsche', category: 'Sports', reliability: 9,
-             fuelCost: 5400, maintenanceCost: 3500, insuranceCost: 2500, founderCredibility: 10,
-             tco: 115000 * 0.20 + 5400 * 3 + 3500 * 3 + 2500 * 3, // 23000 + 16200 + 10500 + 7500 = 57200
-             notes: "2024: New 911, maximum credibility, maximum cost"},
-             
-            {name: 'Porsche Cayman (2020)', year: '2020', price: 55000, depreciation: 18, fuel: 'Gas', brand: 'Porsche', category: 'Sports', reliability: 9,
-             fuelCost: 4800, maintenanceCost: 3600, insuranceCost: 2100, founderCredibility: 9,
-             tco: 55000 * 0.18 + 4800 * 3 + 3600 * 3 + 2100 * 3, // 9900 + 14400 + 10800 + 6300 = 41400
-             notes: "2020: Used Cayman, sports car credibility"},
-             
-            {name: 'Porsche Cayman (2024)', year: '2024', price: 68000, depreciation: 22, fuel: 'Gas', brand: 'Porsche', category: 'Sports', reliability: 9,
-             fuelCost: 4800, maintenanceCost: 3200, insuranceCost: 2100, founderCredibility: 10,
-             tco: 68000 * 0.22 + 4800 * 3 + 3200 * 3 + 2100 * 3, // 14960 + 14400 + 9600 + 6300 = 45260
-             notes: "2024: New Cayman with perfect style score"},
-             
-            // PERSONAL CAR: User's actual Scion xB
-            {name: 'Scion xB (2011) - Personal', year: '2011', price: 2000, depreciation: 5, fuel: 'Gas', brand: 'Scion', category: 'Budget', reliability: 6,
-             fuelCost: 3300, maintenanceCost: 2400, insuranceCost: 800, founderCredibility: 3, // Higher maintenance due to 120k miles + battery issues
-             tco: 2000 * 0.05 + 3300 * 3 + 2400 * 3 + 800 * 3, // 100 + 9900 + 7200 + 2400 = 19600
-             notes: "Actual owned car: $2k shipping cost, 120k miles, battery issues - but unbeatable entry cost"},
-        ];
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${diffDays}d ago`;
+        }
+        
+        // Function to get live price data for a car
+        function getLivePriceData(make, model) {
+            if (!livePricesData) return null;
+            
+            return livePricesData.cars.find(car => 
+                car.make.toLowerCase() === make.toLowerCase() && 
+                car.model.toLowerCase() === model.toLowerCase()
+            );
+        }
+        
+        // Function to parse CSV and convert to our data structure
+        function parseCSVData(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',');
+            const cars = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const car = {};
+                
+                headers.forEach((header, index) => {
+                    car[header.trim()] = values[index] ? values[index].trim().replace(/"/g, '') : '';
+                });
+                
+                // Convert to our dashboard format
+                const dashboardCar = {
+                    name: `${car.make} ${car.model}`,
+                    make: car.make,
+                    model: car.model,
+                    year: car.year_range.includes('-') ? car.year_range.split('-')[1] : car.year_range,
+                    price: Math.round((parseInt(car.price_range_low) + parseInt(car.price_range_high)) / 2),
+                    depreciation: parseInt(car.depreciation_3yr_percent),
+                    fuel: car.fuel_type,
+                    brand: car.make,
+                    category: car.category,
+                    reliability: parseInt(car.reliability_score),
+                    fuelCost: parseInt(car.annual_fuel_cost),
+                    maintenanceCost: parseInt(car.maintenance_annual),
+                    insuranceCost: parseInt(car.insurance_annual),
+                    founderCredibility: parseInt(car.coolness_score),
+                    notes: car.notes,
+                    staticPrice: Math.round((parseInt(car.price_range_low) + parseInt(car.price_range_high)) / 2)
+                };
+                
+                // Check for live price data and update if available
+                const liveData = getLivePriceData(car.make, car.model);
+                if (liveData && liveData.listings_count > 0) {
+                    dashboardCar.price = liveData.current_price;
+                    dashboardCar.livePriceData = {
+                        current: liveData.current_price,
+                        min: liveData.min_price,
+                        max: liveData.max_price,
+                        listings: liveData.listings_count,
+                        sources: liveData.price_sources,
+                        trend: liveData.price_trend || 'stable',
+                        marketStatus: liveData.market_status || 'unknown',
+                        isLive: true
+                    };
+                    dashboardCar.notes += ` | 🔴 LIVE: $${liveData.current_price.toLocaleString()} (${liveData.listings_count} listings)`;
+                }
+                
+                // Calculate TCO: (price * depreciation%) + (annual costs * 3 years)
+                dashboardCar.tco = Math.round(
+                    dashboardCar.price * (dashboardCar.depreciation / 100) + 
+                    (dashboardCar.fuelCost + dashboardCar.maintenanceCost + dashboardCar.insuranceCost) * 3
+                );
+                
+                cars.push(dashboardCar);
+            }
+            
+            // Add the user's personal Scion xB
+            cars.push({
+                name: 'Scion xB (2011) - Personal',
+                make: 'Scion',
+                model: 'xB',
+                year: '2011',
+                price: 2000,
+                depreciation: 5,
+                fuel: 'Gas',
+                brand: 'Scion',
+                category: 'Budget',
+                reliability: 6,
+                fuelCost: 3300,
+                maintenanceCost: 2400,
+                insuranceCost: 800,
+                founderCredibility: 3,
+                tco: 2000 * 0.05 + 3300 * 3 + 2400 * 3 + 800 * 3, // 19600
+                notes: "Actual owned car: $2k shipping cost, 120k miles, battery issues - but unbeatable entry cost"
+            });
+            
+            return cars;
+        }
+        
+        // Load live prices first, then CSV data
+        async function loadAllData() {
+            // Try to load live prices first
+            await loadLivePrices();
+            
+            // Then load CSV data
+            try {
+                const response = await fetch('./comprehensive_car_analysis.csv');
+                const csvText = await response.text();
+                carData = parseCSVData(csvText);
+                console.log(`Loaded ${carData.length} cars from CSV`);
+                
+                // Count how many have live data
+                const liveDataCount = carData.filter(car => car.livePriceData?.isLive).length;
+                console.log(`${liveDataCount} cars have live pricing data`);
+                
+                initializeDashboard();
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+                // Fallback to basic data if CSV fails
+                carData = [
+                    {name: 'Tesla Model 3', price: 25500, depreciation: 45, fuel: 'Electric', brand: 'Tesla', category: 'Electric', reliability: 8, 
+                     fuelCost: 825, maintenanceCost: 900, insuranceCost: 1200, founderCredibility: 5,
+                     tco: 25500 * 0.45 + 825 * 3 + 900 * 3 + 1200 * 3,
+                     notes: "Fallback data - CSV failed to load"}
+                ];
+                initializeDashboard();
+            }
+        }
+        
+        // Start data loading
+        loadAllData();
+        
+        // Refresh function for button
+        async function refreshData() {
+            const btn = document.getElementById('refreshDataBtn');
+            btn.disabled = true;
+            btn.innerHTML = '🔄 Refreshing...';
+            
+            try {
+                // Reload live prices
+                await loadLivePrices();
+                
+                // Reload CSV data with new live prices
+                const response = await fetch('./comprehensive_car_analysis.csv');
+                const csvText = await response.text();
+                carData = parseCSVData(csvText);
+                
+                // Count live data
+                const liveDataCount = carData.filter(car => car.livePriceData?.isLive).length;
+                console.log(`Refreshed: ${liveDataCount} cars have live pricing data`);
+                
+                // Update filters and dashboard
+                filteredData = [...carData];
+                populateBrandFilter();
+                updateDashboard();
+                
+                btn.innerHTML = '✅ Refreshed!';
+                setTimeout(() => {
+                    btn.innerHTML = '🔄 Refresh Live Prices';
+                    btn.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Refresh failed:', error);
+                btn.innerHTML = '❌ Failed';
+                setTimeout(() => {
+                    btn.innerHTML = '🔄 Refresh Live Prices';
+                    btn.disabled = false;
+                }, 2000);
+            }
+        }
 
-        let filteredData = [...carData];
+        let filteredData = [];
         let charts = {};
+
+        // Initialize dashboard after data is loaded
+        function initializeDashboard() {
+            filteredData = [...carData];
+            performance.mark('init-start');
+            
+            populateBrandFilter();
+            updateDashboard();
+            setupEventListeners();
+            enhanceAccessibility();
+            monitorPerformance();
+            
+            performance.mark('init-end');
+            performance.measure('Dashboard Initialization', 'init-start', 'init-end');
+            
+            // Add loading complete indicator
+            document.body.classList.add('loaded');
+            console.log('Dashboard initialized with CSV data');
+        }
 
         // Populate brand filter
         function populateBrandFilter() {
@@ -2463,25 +2437,10 @@
             }
         }
 
-        // Initialize
-        function init() {
-            performance.mark('init-start');
-            
-            populateBrandFilter();
-            updateDashboard();
-            setupEventListeners();
-            enhanceAccessibility();
-            monitorPerformance();
-            
-            performance.mark('init-end');
-            performance.measure('Dashboard Initialization', 'init-start', 'init-end');
-            
-            // Add loading complete indicator
-            document.body.classList.add('loaded');
-        }
-
-        // Optimized event listener with passive flag where possible
-        window.addEventListener('load', init, { passive: true });
+        // Wait for DOM to load before initializing CSV loading
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting CSV fetch...');
+        }, { passive: true });
         
         // Add error handling
         window.addEventListener('error', (e) => {
