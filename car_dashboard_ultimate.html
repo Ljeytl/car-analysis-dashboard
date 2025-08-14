@@ -919,6 +919,54 @@
             </div>
         </div>
 
+        <!-- Advanced TCO Parameters Section -->
+        <div class="tco-parameters-section">
+            <h3 class="section-title">🎯 Founder TCO Parameters</h3>
+            <div class="tco-controls">
+                <div class="tco-control-group">
+                    <label for="yearsOwned">Years Owned</label>
+                    <div class="slider-container">
+                        <input type="range" id="yearsOwned" min="1" max="7" value="3" step="1">
+                        <span id="yearsOwnedValue">3 years</span>
+                    </div>
+                </div>
+                
+                <div class="tco-control-group">
+                    <label for="milesPerWeek">Miles Per Week</label>
+                    <div class="slider-container">
+                        <input type="range" id="milesPerWeek" min="50" max="500" value="210" step="10">
+                        <span id="milesPerWeekValue">210 miles/week</span>
+                    </div>
+                </div>
+                
+                <div class="tco-control-group">
+                    <label for="enableFuelEfficiency">Include Fuel Efficiency Factor</label>
+                    <div class="toggle-container">
+                        <input type="checkbox" id="enableFuelEfficiency" checked>
+                        <span class="toggle-label">Enabled</span>
+                    </div>
+                </div>
+                
+                <div class="tco-control-group">
+                    <label for="founderMode">Founder Priority Mode</label>
+                    <select id="founderMode">
+                        <option value="balanced">Balanced (Default)</option>
+                        <option value="bootstrap">Bootstrap Mode (Max Efficiency)</option>
+                        <option value="fundraising">Fundraising Mode (Max Credibility)</option>
+                        <option value="stealth">Stealth Wealth Mode</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations Section -->
+        <div class="recommendations-section">
+            <h3 class="section-title">🏆 AI-Powered Founder Recommendations</h3>
+            <div id="recommendations-container" class="recommendations-grid">
+                <!-- Recommendations will be populated here -->
+            </div>
+        </div>
+
         <!-- Manual Car Entry Tab -->
         <div class="manual-entry-tab" style="margin: 30px 0;">
             <button id="toggleManualEntry" onclick="toggleManualEntryForm()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; padding: 15px 25px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); transition: all 0.3s ease; width: 100%;">
@@ -1274,6 +1322,7 @@
                                         `Weighted Score: ${car.weightedScore}/10`,
                                         `Price: $${car.price.toLocaleString()}`,
                                         `TCO: $${car.tco.toLocaleString()}`,
+                                        `APR: ${car.estimatedAPR?.toFixed(1)}% (Est. $${car.financingCost?.toLocaleString()} financing)`,
                                         `Reliability: ${car.reliability}/10`
                                     ];
                                 }
@@ -1325,19 +1374,331 @@
             `).join('');
         }
         
+        // Advanced Car Recommendation Engine with Sophisticated Scoring
+        class CarRecommendationEngine {
+            constructor() {
+                this.userProfile = {
+                    yearsOwned: 3,
+                    milesPerWeek: 210,
+                    income: 175000,
+                    role: 'founder',
+                    priorityWeights: {
+                        tco: 0.30,
+                        founderCredibility: 0.25,
+                        reliability: 0.20,
+                        marketPosition: 0.15,
+                        opportunityCost: 0.10
+                    },
+                    enableFuelEfficiencyFactor: true
+                };
+                this.brandPrestigeData = {
+                    'Tesla': { prestige: 95, depreciationCurve: 'steep', founderCredibility: 95 },
+                    'BMW': { prestige: 85, depreciationCurve: 'moderate', founderCredibility: 80 },
+                    'Mercedes': { prestige: 88, depreciationCurve: 'moderate', founderCredibility: 85 },
+                    'Audi': { prestige: 82, depreciationCurve: 'moderate', founderCredibility: 78 },
+                    'Lexus': { prestige: 80, depreciationCurve: 'gentle', founderCredibility: 75 },
+                    'Toyota': { prestige: 65, depreciationCurve: 'gentle', founderCredibility: 60 },
+                    'Honda': { prestige: 62, depreciationCurve: 'gentle', founderCredibility: 58 },
+                    'Genesis': { prestige: 78, depreciationCurve: 'moderate', founderCredibility: 72 },
+                    'Porsche': { prestige: 95, depreciationCurve: 'gentle', founderCredibility: 90 },
+                    'Lucid': { prestige: 88, depreciationCurve: 'unknown', founderCredibility: 85 },
+                    'Rivian': { prestige: 75, depreciationCurve: 'steep', founderCredibility: 80 },
+                    'Polestar': { prestige: 72, depreciationCurve: 'moderate', founderCredibility: 70 }
+                };
+                this.percentileCache = new Map();
+            }
+
+            calculatePercentileScore(value, allValues, higherIsBetter = true) {
+                const cacheKey = `${value}_${allValues.length}_${higherIsBetter}`;
+                if (this.percentileCache.has(cacheKey)) {
+                    return this.percentileCache.get(cacheKey);
+                }
+                
+                const sorted = [...allValues].sort((a, b) => higherIsBetter ? a - b : b - a);
+                const rank = sorted.indexOf(value);
+                const percentile = (rank / (sorted.length - 1)) * 100;
+                
+                this.percentileCache.set(cacheKey, percentile);
+                return percentile;
+            }
+
+            calculateAdvancedTCO(car) {
+                const years = this.userProfile.yearsOwned;
+                const annualMiles = this.userProfile.milesPerWeek * 52;
+                
+                // Base TCO calculation
+                const purchasePrice = car.price || 0;
+                const depreciationLoss = purchasePrice * (car.depreciation_3yr_percent || 35) / 100 * (years / 3);
+                const fuelCosts = (car.annual_fuel_cost || 2000) * years;
+                const maintenanceCosts = (car.maintenance_annual || 800) * years;
+                const insuranceCosts = (car.insurance_annual || 1200) * years;
+                const registrationCosts = 500 * years; // CA registration
+                
+                let tco = purchasePrice + depreciationLoss + fuelCosts + maintenanceCosts + insuranceCosts + registrationCosts;
+                
+                // High mileage penalty
+                if (annualMiles > 15000) {
+                    const excessMiles = annualMiles - 15000;
+                    const mileagePenalty = excessMiles * 0.15 * years; // $0.15 per excess mile per year
+                    tco += mileagePenalty;
+                }
+                
+                return tco;
+            }
+
+            calculateFounderCredibilityScore(car) {
+                const brandData = this.brandPrestigeData[car.brand] || this.brandPrestigeData[car.make] || { prestige: 50, founderCredibility: 50 };
+                let score = brandData.founderCredibility;
+                
+                // Price perception adjustments
+                if (car.price < 15000) {
+                    score -= 25; // Too cheap penalty for founders
+                } else if (car.price > 50000) {
+                    score += 10; // Luxury premium
+                }
+                
+                // EV bonus for tech credibility
+                if (car.fuel_type === 'Electric' || car.fuel === 'Electric') {
+                    score += 15;
+                }
+                
+                // Age penalty
+                const currentYear = new Date().getFullYear();
+                const carAge = currentYear - (car.year || 2020);
+                if (carAge > 5) {
+                    score -= carAge * 3;
+                }
+                
+                return Math.max(0, Math.min(100, score));
+            }
+
+            calculateReliabilityPenalty(car) {
+                const reliability = car.reliability_score || car.reliability || 5;
+                if (reliability < 6) {
+                    return 5000; // Harsh penalty for unreliable cars
+                } else if (reliability < 7) {
+                    return 2000; // Moderate penalty
+                }
+                return 0;
+            }
+
+            calculateMarketOpportunityCost(car) {
+                // Opportunity cost of capital tied up in the car
+                const capitalTiedUp = car.price || 0;
+                const opportunityRate = 0.08; // 8% annual return assumption
+                const years = this.userProfile.yearsOwned;
+                return capitalTiedUp * opportunityRate * years;
+            }
+
+            generateSmartExplanation(car, scores) {
+                const tco = scores.tco;
+                const credibility = scores.founderCredibility;
+                const reliability = car.reliability_score || car.reliability || 5;
+                const price = car.price || 0;
+                
+                if (tco < 20000 && credibility > 70 && reliability > 7) {
+                    return "Stealth wealth play - looks expensive, actually smart TCO";
+                } else if (credibility > 85 && price > 40000) {
+                    return "Statement piece - justifiable for fundraising ROI";
+                } else if (tco < 15000 && reliability > 8) {
+                    return "Bootstrap mode - maximize capital efficiency";
+                } else if (credibility > 80 && car.fuel_type === 'Electric') {
+                    return "Tech founder flex - sustainable + premium image";
+                } else if (reliability > 8.5 && tco < 25000) {
+                    return "Reliable workhorse - focus on business, not car issues";
+                } else if (credibility < 60) {
+                    return "Budget mode - may hurt founder credibility";
+                } else if (reliability < 6) {
+                    return "Risk play - potential reliability issues ahead";
+                } else {
+                    return "Balanced choice - reasonable across all factors";
+                }
+            }
+
+            scoreAllCars(cars) {
+                if (!cars || cars.length === 0) return [];
+                
+                // Calculate raw scores for all cars
+                const carScores = cars.map(car => {
+                    const tco = this.calculateAdvancedTCO(car);
+                    const founderCredibility = this.calculateFounderCredibilityScore(car);
+                    const reliabilityPenalty = this.calculateReliabilityPenalty(car);
+                    const opportunityCost = this.calculateMarketOpportunityCost(car);
+                    
+                    return {
+                        car,
+                        tco,
+                        founderCredibility,
+                        reliabilityPenalty,
+                        opportunityCost,
+                        totalCost: tco + reliabilityPenalty + opportunityCost
+                    };
+                });
+                
+                // Calculate percentile scores
+                const tcoValues = carScores.map(s => s.totalCost);
+                const credibilityValues = carScores.map(s => s.founderCredibility);
+                
+                return carScores.map(score => {
+                    const tcoPercentile = this.calculatePercentileScore(score.totalCost, tcoValues, false); // Lower cost is better
+                    const credibilityPercentile = this.calculatePercentileScore(score.founderCredibility, credibilityValues, true);
+                    
+                    // Calculate weighted composite score
+                    const weights = this.userProfile.priorityWeights;
+                    const compositeScore = (
+                        tcoPercentile * weights.tco +
+                        credibilityPercentile * weights.founderCredibility +
+                        85 * weights.reliability + // Reliability baseline
+                        credibilityPercentile * weights.marketPosition +
+                        (100 - this.calculatePercentileScore(score.opportunityCost, carScores.map(s => s.opportunityCost), false)) * weights.opportunityCost
+                    );
+                    
+                    return {
+                        ...score,
+                        tcoPercentile,
+                        credibilityPercentile,
+                        compositeScore,
+                        smartExplanation: this.generateSmartExplanation(score.car, score),
+                        marketPosition: this.getMarketPosition(score.car)
+                    };
+                }).sort((a, b) => b.compositeScore - a.compositeScore);
+            }
+
+            getMarketPosition(car) {
+                const price = car.price || 0;
+                if (price < 20000) return 'Budget';
+                if (price < 35000) return 'Mid-Market';
+                if (price < 50000) return 'Premium';
+                return 'Luxury';
+            }
+
+            updateParameters(params) {
+                Object.assign(this.userProfile, params);
+                this.percentileCache.clear(); // Clear cache when parameters change
+            }
+        }
+
+        // Initialize the recommendation engine
+        const recommendationEngine = new CarRecommendationEngine();
+
+        function updateRecommendations() {
+            if (!carData || carData.length === 0) return;
+            
+            const scoredCars = recommendationEngine.scoreAllCars(carData);
+            const top5 = scoredCars.slice(0, 5);
+            
+            displayRecommendations(top5);
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-container');
+            if (!container) return;
+            
+            container.innerHTML = recommendations.map((rec, index) => {
+                const car = rec.car;
+                const badge = index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                const credibilityBadge = rec.founderCredibility > 80 ? '💼' : rec.founderCredibility > 60 ? '📊' : '💰';
+                
+                return `
+                    <div class="recommendation-card rank-${index + 1}">
+                        <div class="rec-header">
+                            <span class="rank-badge">${badge}</span>
+                            <h3>${car.make || car.brand} ${car.model}</h3>
+                            <span class="credibility-badge">${credibilityBadge}</span>
+                        </div>
+                        <div class="rec-scores">
+                            <div class="score-item">
+                                <span class="score-label">Composite Score</span>
+                                <span class="score-value">${rec.compositeScore.toFixed(1)}/100</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">3-Year TCO</span>
+                                <span class="score-value">$${rec.totalCost.toLocaleString()}</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">Founder Cred</span>
+                                <span class="score-value">${rec.founderCredibility.toFixed(0)}/100</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">Market Position</span>
+                                <span class="score-value">${rec.marketPosition}</span>
+                            </div>
+                        </div>
+                        <div class="rec-explanation">
+                            <strong>${rec.smartExplanation}</strong>
+                        </div>
+                        <div class="rec-details">
+                            <span class="price">$${(car.price || 0).toLocaleString()}</span>
+                            <span class="year">${car.year}</span>
+                            <span class="fuel">${car.fuel_type || car.fuel}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Setup TCO parameter event listeners
+        function setupTCOParameterListeners() {
+            const yearsOwned = document.getElementById('yearsOwned');
+            const milesPerWeek = document.getElementById('milesPerWeek');
+            const enableFuelEfficiency = document.getElementById('enableFuelEfficiency');
+            const founderMode = document.getElementById('founderMode');
+            
+            if (yearsOwned) {
+                yearsOwned.addEventListener('input', function() {
+                    document.getElementById('yearsOwnedValue').textContent = this.value + ' years';
+                    recommendationEngine.updateParameters({ yearsOwned: parseInt(this.value) });
+                    updateRecommendations();
+                });
+            }
+            
+            if (milesPerWeek) {
+                milesPerWeek.addEventListener('input', function() {
+                    document.getElementById('milesPerWeekValue').textContent = this.value + ' miles/week';
+                    recommendationEngine.updateParameters({ milesPerWeek: parseInt(this.value) });
+                    updateRecommendations();
+                });
+            }
+            
+            if (enableFuelEfficiency) {
+                enableFuelEfficiency.addEventListener('change', function() {
+                    document.querySelector('.toggle-label').textContent = this.checked ? 'Enabled' : 'Disabled';
+                    recommendationEngine.updateParameters({ enableFuelEfficiencyFactor: this.checked });
+                    updateRecommendations();
+                });
+            }
+            
+            if (founderMode) {
+                founderMode.addEventListener('change', function() {
+                    const mode = this.value;
+                    let weights;
+                    
+                    switch(mode) {
+                        case 'bootstrap':
+                            weights = { tco: 0.50, founderCredibility: 0.15, reliability: 0.25, marketPosition: 0.05, opportunityCost: 0.05 };
+                            break;
+                        case 'fundraising':
+                            weights = { tco: 0.20, founderCredibility: 0.40, reliability: 0.15, marketPosition: 0.20, opportunityCost: 0.05 };
+                            break;
+                        case 'stealth':
+                            weights = { tco: 0.35, founderCredibility: 0.30, reliability: 0.20, marketPosition: 0.10, opportunityCost: 0.05 };
+                            break;
+                        default: // balanced
+                            weights = { tco: 0.30, founderCredibility: 0.25, reliability: 0.20, marketPosition: 0.15, opportunityCost: 0.10 };
+                    }
+                    
+                    recommendationEngine.updateParameters({ priorityWeights: weights });
+                    updateRecommendations();
+                });
+            }
+        }
+
         // Initialize recommendations when data loads
         function initializePersonalizedRecommendations() {
             if (carData && carData.length > 0) {
                 updateRecommendations();
             }
         }
-        
-        // Add to the initialization sequence
-        const originalInitializeDashboard = initializeDashboard;
-        initializeDashboard = function() {
-            originalInitializeDashboard();
-            setTimeout(initializePersonalizedRecommendations, 500);
-        };
     </script>
     
     <style>
@@ -1391,6 +1752,230 @@
             border-radius: 12px;
             align-self: center;
             min-width: 30px;
+        }
+        
+        /* New TCO Parameters Section Styles */
+        .tco-parameters-section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+            text-align: center;
+        }
+        
+        .tco-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .tco-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+        
+        .tco-control-group label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .slider-container input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--border-color);
+            outline: none;
+        }
+        
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(49, 130, 206, 0.4);
+        }
+        
+        .slider-container span {
+            background: var(--surface-bg);
+            color: var(--text-primary);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85em;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .toggle-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-blue);
+        }
+        
+        .toggle-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .tco-control-group select {
+            background: var(--surface-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+        
+        /* Recommendations Section Styles */
+        .recommendations-section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .recommendations-grid {
+            display: grid;
+            gap: var(--spacing-md);
+        }
+        
+        .recommendation-card {
+            background: var(--surface-bg);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            border: 1px solid var(--border-color);
+            transition: var(--transition-normal);
+        }
+        
+        .recommendation-card:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 4px 20px rgba(49, 130, 206, 0.2);
+        }
+        
+        .recommendation-card.rank-1 {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, var(--surface-bg) 0%, rgba(255, 215, 0, 0.1) 100%);
+        }
+        
+        .recommendation-card.rank-2 {
+            border-color: #c0c0c0;
+            background: linear-gradient(135deg, var(--surface-bg) 0%, rgba(192, 192, 192, 0.1) 100%);
+        }
+        
+        .recommendation-card.rank-3 {
+            border-color: #cd7f32;
+            background: linear-gradient(135deg, var(--surface-bg) 0%, rgba(205, 127, 50, 0.1) 100%);
+        }
+        
+        .rec-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .rec-header h3 {
+            flex: 1;
+            margin: 0;
+            font-size: 1.1em;
+            color: var(--text-primary);
+        }
+        
+        .rank-badge {
+            font-size: 1.2em;
+        }
+        
+        .credibility-badge {
+            background: var(--accent-blue);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        
+        .rec-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .score-item {
+            text-align: center;
+        }
+        
+        .score-label {
+            display: block;
+            font-size: 0.75em;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        
+        .score-value {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.9em;
+        }
+        
+        .rec-explanation {
+            background: rgba(49, 130, 206, 0.1);
+            padding: var(--spacing-xs);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-sm);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        .rec-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+        
+        .rec-details .price {
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+        
+        @media (max-width: 768px) {
+            .tco-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .rec-scores {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         @media (max-width: 768px) {
@@ -1536,7 +2121,7 @@
                 
                 // Convert to our dashboard format
                 const dashboardCar = {
-                    name: `${car.make} ${car.model}`,
+                    name: `${car.make} ${car.model} (${car.year_range})`,
                     make: car.make,
                     model: car.model,
                     year: car.year_range.includes('-') ? car.year_range.split('-')[1] : car.year_range,
@@ -1571,11 +2156,20 @@
                     dashboardCar.notes += ` | 🔴 LIVE: $${liveData.current_price.toLocaleString()} (${liveData.listings_count} listings)`;
                 }
                 
-                // Calculate TCO: (price * depreciation%) + (annual costs * 3 years)
+                // Calculate financing cost (assuming 60-month loan, 750 credit score)
+                const estimatedAPR = getEstimatedAPR(car.make, car.year_range.split('-')[0], false, 750);
+                const financingCost = calculateFinancingCost(dashboardCar.price, estimatedAPR, 60);
+                
+                // Calculate TCO: (price * depreciation%) + (annual costs * 3 years) + financing cost
                 dashboardCar.tco = Math.round(
                     dashboardCar.price * (dashboardCar.depreciation / 100) + 
-                    (dashboardCar.fuelCost + dashboardCar.maintenanceCost + dashboardCar.insuranceCost) * 3
+                    (dashboardCar.fuelCost + dashboardCar.maintenanceCost + dashboardCar.insuranceCost) * 3 +
+                    financingCost
                 );
+                
+                // Store APR and financing info for display
+                dashboardCar.estimatedAPR = estimatedAPR;
+                dashboardCar.financingCost = financingCost;
                 
                 cars.push(dashboardCar);
             }
@@ -1655,6 +2249,26 @@
             }
         }
         
+        // Initialize dashboard after data is loaded
+        function initializeDashboard() {
+            filteredData = [...carData];
+            performance.mark('init-start');
+            
+            populateBrandFilter();
+            updateDashboard();
+            setupEventListeners();
+            enhanceAccessibility();
+            monitorPerformance();
+            initializePersonalizedRecommendations();
+            
+            performance.mark('init-end');
+            performance.measure('Dashboard Initialization', 'init-start', 'init-end');
+            
+            // Add loading complete indicator
+            document.body.classList.add('loaded');
+            console.log('Dashboard initialized with CSV data');
+        }
+        
         // Start data loading
         loadAllData();
         
@@ -1701,24 +2315,7 @@
         let filteredData = [];
         let charts = {};
 
-        // Initialize dashboard after data is loaded
-        function initializeDashboard() {
-            filteredData = [...carData];
-            performance.mark('init-start');
-            
-            populateBrandFilter();
-            updateDashboard();
-            setupEventListeners();
-            enhanceAccessibility();
-            monitorPerformance();
-            
-            performance.mark('init-end');
-            performance.measure('Dashboard Initialization', 'init-start', 'init-end');
-            
-            // Add loading complete indicator
-            document.body.classList.add('loaded');
-            console.log('Dashboard initialized with CSV data');
-        }
+        // Function moved above to fix reference error
 
         // Populate brand filter
         function populateBrandFilter() {
@@ -2954,9 +3551,16 @@
             };
 
             // Calculate TCO
+            // Calculate financing cost
+            const estimatedAPR = getEstimatedAPR(newCar.make, newCar.year, false, 750);
+            const financingCost = calculateFinancingCost(newCar.price, estimatedAPR, 60);
+            
+            newCar.estimatedAPR = estimatedAPR;
+            newCar.financingCost = financingCost;
             newCar.tco = Math.round(
                 newCar.price * (newCar.depreciation / 100) + 
-                (newCar.fuelCost + newCar.maintenanceCost + newCar.insuranceCost) * 3
+                (newCar.fuelCost + newCar.maintenanceCost + newCar.insuranceCost) * 3 +
+                financingCost
             );
 
             // Check for duplicates and handle numbering  
@@ -3105,7 +3709,7 @@
                 if (mainCarsResponse.ok) {
                     const mainCars = await mainCarsResponse.json();
                     const formattedMainCars = mainCars.map(car => ({
-                        name: `${car.make} ${car.model}`,
+                        name: `${car.make} ${car.model} (${car.year_range})`,
                         make: car.make,
                         model: car.model,
                         year: car.year_range.includes('-') ? car.year_range.split('-')[1] : car.year_range,
@@ -3121,12 +3725,22 @@
                         founderCredibility: car.founder_credibility_score,
                         notes: car.notes,
                         isFromCSV: true,
-                        supabaseId: car.id,
-                        tco: Math.round(
-                            car.price * (car.depreciation_3yr_percent / 100) + 
-                            (car.annual_fuel_cost + car.maintenance_annual + car.insurance_annual) * 3
-                        )
+                        supabaseId: car.id
                     }));
+                    
+                    // Add financing costs to each car
+                    formattedMainCars.forEach(dashboardCar => {
+                        const estimatedAPR = getEstimatedAPR(dashboardCar.make, dashboardCar.year, false, 750);
+                        const financingCost = calculateFinancingCost(dashboardCar.price, estimatedAPR, 60);
+                        
+                        dashboardCar.estimatedAPR = estimatedAPR;
+                        dashboardCar.financingCost = financingCost;
+                        dashboardCar.tco = Math.round(
+                            dashboardCar.price * (dashboardCar.depreciation / 100) + 
+                            (dashboardCar.fuelCost + dashboardCar.maintenanceCost + dashboardCar.insuranceCost) * 3 +
+                            financingCost
+                        );
+                    });
                     allCars = allCars.concat(formattedMainCars);
                     console.log(`📊 Loaded ${formattedMainCars.length} cars from main_cars (CSV data)`);
                 }
@@ -3153,12 +3767,22 @@
                         isManual: true,
                         createdAt: car.created_at,
                         addedBy: car.added_by,
-                        supabaseId: car.id,
-                        tco: Math.round(
-                            car.price * (car.depreciation_3yr_percent / 100) + 
-                            (car.annual_fuel_cost + car.maintenance_annual + car.insurance_annual) * 3
-                        )
+                        supabaseId: car.id
                     }));
+                    
+                    // Add financing costs to family cars
+                    formattedFamilyCars.forEach(dashboardCar => {
+                        const estimatedAPR = getEstimatedAPR(dashboardCar.make, dashboardCar.year, false, 750);
+                        const financingCost = calculateFinancingCost(dashboardCar.price, estimatedAPR, 60);
+                        
+                        dashboardCar.estimatedAPR = estimatedAPR;
+                        dashboardCar.financingCost = financingCost;
+                        dashboardCar.tco = Math.round(
+                            dashboardCar.price * (dashboardCar.depreciation / 100) + 
+                            (dashboardCar.fuelCost + dashboardCar.maintenanceCost + dashboardCar.insuranceCost) * 3 +
+                            financingCost
+                        );
+                    });
                     allCars = allCars.concat(formattedFamilyCars);
                     console.log(`👥 Loaded ${formattedFamilyCars.length} custom cars from family_cars`);
                     
@@ -3349,6 +3973,63 @@
             }
         }
 
+        // Function to estimate APR based on vehicle type, age, and brand
+        function getEstimatedAPR(make, year, isNew = false, creditScore = 750) {
+            const currentYear = new Date().getFullYear();
+            const age = currentYear - parseInt(year);
+            
+            // Base APR by vehicle category and age
+            let baseAPR = 6.5; // Default
+            
+            if (isNew || age <= 1) {
+                // New car rates
+                if (make.toLowerCase() === 'tesla') {
+                    baseAPR = 1.5; // Tesla often has promotional 0-3% rates
+                } else if (['bmw', 'mercedes', 'audi', 'porsche', 'lexus'].includes(make.toLowerCase())) {
+                    baseAPR = 3.5; // Luxury promotional rates 2.99-4.99%
+                } else if (['toyota', 'honda', 'mazda', 'subaru'].includes(make.toLowerCase())) {
+                    baseAPR = 2.5; // Mainstream promotional rates 0-3.9%
+                } else {
+                    baseAPR = 5.5; // Other new cars
+                }
+            } else {
+                // Used car rates based on age
+                if (age <= 3) {
+                    baseAPR = 7.5; // 2021-2024 used
+                } else if (age <= 6) {
+                    baseAPR = 9.0; // 2017-2020 used
+                } else {
+                    baseAPR = 12.0; // Older used cars
+                }
+            }
+            
+            // Credit score adjustment
+            if (creditScore >= 780) {
+                // Excellent credit - use promotional rates
+                return baseAPR;
+            } else if (creditScore >= 720) {
+                // Good credit - +1-2%
+                return baseAPR + 1.5;
+            } else if (creditScore >= 650) {
+                // Fair credit - +3-5%
+                return baseAPR + 4.0;
+            } else {
+                // Poor credit - +8-12%
+                return baseAPR + 10.0;
+            }
+        }
+
+        // Function to calculate financing cost over loan term
+        function calculateFinancingCost(principal, apr, termMonths = 60) {
+            if (apr === 0) return 0;
+            
+            const monthlyRate = apr / 100 / 12;
+            const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
+                                 (Math.pow(1 + monthlyRate, termMonths) - 1);
+            const totalPaid = monthlyPayment * termMonths;
+            return Math.round(totalPaid - principal); // Interest paid
+        }
+
         // Helper functions for smart defaults
         function getDefaultDepreciation(fuel, brand, year) {
             const currentYear = new Date().getFullYear();
@@ -3463,6 +4144,9 @@
             
             // Color toggle event listener
             document.getElementById('colorMode').addEventListener('change', updateDashboard);
+            
+            // TCO Parameter event listeners
+            setupTCOParameterListeners();
 
             // Add loading states
             [document.getElementById('budgetFilter'), document.getElementById('fuelFilter'), 
