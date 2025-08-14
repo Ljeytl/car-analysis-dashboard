@@ -3083,16 +3083,58 @@
 
         async function loadCarsFromSupabase() {
             try {
-                const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}?select=*`, {
-                    headers: {
-                        'apikey': SUPABASE_CONFIG.anonKey,
-                        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-                    }
-                });
+                // Load from both tables: main_cars (CSV data) and family_cars (custom entries)
+                const [mainCarsResponse, familyCarsResponse] = await Promise.all([
+                    fetch(`${SUPABASE_CONFIG.url}/rest/v1/main_cars?select=*`, {
+                        headers: {
+                            'apikey': SUPABASE_CONFIG.anonKey,
+                            'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+                        }
+                    }),
+                    fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}?select=*`, {
+                        headers: {
+                            'apikey': SUPABASE_CONFIG.anonKey,
+                            'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+                        }
+                    })
+                ]);
 
-                if (response.ok) {
-                    const supabaseCars = await response.json();
-                    const formattedCars = supabaseCars.map(car => ({
+                let allCars = [];
+
+                // Process main_cars (CSV data) 
+                if (mainCarsResponse.ok) {
+                    const mainCars = await mainCarsResponse.json();
+                    const formattedMainCars = mainCars.map(car => ({
+                        name: `${car.make} ${car.model}`,
+                        make: car.make,
+                        model: car.model,
+                        year: car.year_range.includes('-') ? car.year_range.split('-')[1] : car.year_range,
+                        price: car.price,
+                        depreciation: car.depreciation_3yr_percent,
+                        fuel: car.fuel_type,
+                        brand: car.make,
+                        category: car.category,
+                        reliability: car.reliability_score,
+                        fuelCost: car.annual_fuel_cost,
+                        maintenanceCost: car.maintenance_annual,
+                        insuranceCost: car.insurance_annual,
+                        founderCredibility: car.founder_credibility_score,
+                        notes: car.notes,
+                        isFromCSV: true,
+                        supabaseId: car.id,
+                        tco: Math.round(
+                            car.price * (car.depreciation_3yr_percent / 100) + 
+                            (car.annual_fuel_cost + car.maintenance_annual + car.insurance_annual) * 3
+                        )
+                    }));
+                    allCars = allCars.concat(formattedMainCars);
+                    console.log(`📊 Loaded ${formattedMainCars.length} cars from main_cars (CSV data)`);
+                }
+
+                // Process family_cars (custom entries)
+                if (familyCarsResponse.ok) {
+                    const familyCars = await familyCarsResponse.json();
+                    const formattedFamilyCars = familyCars.map(car => ({
                         name: `${car.make} ${car.model} (${car.year})`,
                         make: car.make,
                         model: car.model,
@@ -3117,19 +3159,19 @@
                             (car.annual_fuel_cost + car.maintenance_annual + car.insurance_annual) * 3
                         )
                     }));
+                    allCars = allCars.concat(formattedFamilyCars);
+                    console.log(`👥 Loaded ${formattedFamilyCars.length} custom cars from family_cars`);
                     
-                    console.log(`📊 Loaded ${formattedCars.length} cars from Supabase database`);
-                    const contributors = [...new Set(supabaseCars.map(car => car.added_by).filter(Boolean))];
+                    const contributors = [...new Set(familyCars.map(car => car.added_by).filter(Boolean))];
                     if (contributors.length > 0) {
                         console.log(`👥 Contributors: ${contributors.join(', ')}`);
                     }
-                    return formattedCars;
-                } else {
-                    console.error('Failed to load from Supabase:', response.status);
-                    return [];
                 }
+
+                console.log(`🚗 Total cars loaded from Supabase: ${allCars.length}`);
+                return allCars;
             } catch (error) {
-                console.error('Error loading from Supabase:', error);
+                console.error('Error loading cars from Supabase:', error);
                 return [];
             }
         }
