@@ -899,6 +899,24 @@
                     <option value="all">All Brands</option>
                 </select>
             </div>
+            
+            <div class="filter-group">
+                <label for="yearFilter">Model Year</label>
+                <select id="yearFilter">
+                    <option value="all">All Years</option>
+                    <option value="2024">2024 (Latest)</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                    <option value="2019">2019</option>
+                    <option value="2018">2018</option>
+                    <option value="2017-2018">2017-2018 (Older)</option>
+                    <option value="new">2023-2024 (New)</option>
+                    <option value="recent">2021-2022 (Recent)</option>
+                    <option value="older">2018-2020 (Value)</option>
+                </select>
+            </div>
         </div>
         
         <div class="stats-grid" id="statsGrid">
@@ -1317,6 +1335,7 @@
             const fuel = document.getElementById('fuelFilter').value;
             const reliability = document.getElementById('reliabilityFilter').value;
             const brand = document.getElementById('brandFilter').value;
+            const year = document.getElementById('yearFilter').value;
 
             filteredData = carData.filter(car => {
                 // Budget filter
@@ -1338,6 +1357,24 @@
 
                 // Brand filter
                 if (brand !== 'all' && car.brand !== brand) return false;
+                
+                // Year filter
+                if (year !== 'all') {
+                    const carYear = parseInt(car.year);
+                    switch(year) {
+                        case '2024': if (carYear !== 2024) return false; break;
+                        case '2023': if (carYear !== 2023) return false; break;
+                        case '2022': if (carYear !== 2022) return false; break;
+                        case '2021': if (carYear !== 2021) return false; break;
+                        case '2020': if (carYear !== 2020) return false; break;
+                        case '2019': if (carYear !== 2019) return false; break;
+                        case '2018': if (carYear !== 2018) return false; break;
+                        case '2017-2018': if (carYear < 2017 || carYear > 2018) return false; break;
+                        case 'new': if (carYear < 2023 || carYear > 2024) return false; break;
+                        case 'recent': if (carYear < 2021 || carYear > 2022) return false; break;
+                        case 'older': if (carYear < 2018 || carYear > 2020) return false; break;
+                    }
+                }
 
                 return true;
             });
@@ -1741,68 +1778,6 @@
             });
         }
 
-        function createTCOBrandChart() {
-            const ctx = document.getElementById('tcoBrandChart').getContext('2d');
-            if (charts.tcoBrand) charts.tcoBrand.destroy();
-            
-            const brandData = {};
-            filteredData.forEach(car => {
-                if (!brandData[car.brand]) {
-                    brandData[car.brand] = [];
-                }
-                brandData[car.brand].push(car.tco);
-            });
-
-            const brands = Object.keys(brandData).map(brand => ({
-                brand: brand,
-                avgTCO: brandData[brand].reduce((sum, tco) => sum + tco, 0) / brandData[brand].length,
-                count: brandData[brand].length
-            })).sort((a, b) => a.avgTCO - b.avgTCO);
-
-            charts.tcoBrand = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: brands.map(b => `${b.brand}\\n(${b.count} cars)`),
-                    datasets: [{
-                        label: 'Average True TCO',
-                        data: brands.map(b => b.avgTCO),
-                        backgroundColor: brands.map(b => {
-                            if (b.avgTCO < 20000) return '#2ecc71';
-                            if (b.avgTCO < 25000) return '#f39c12';
-                            if (b.avgTCO < 30000) return '#e67e22';
-                            return '#e74c3c';
-                        }),
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const brand = brands[context.dataIndex];
-                                    return `${brand.brand}: $${context.parsed.y.toLocaleString()} avg TCO (${brand.count} models)`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            title: { display: true, text: 'Average True TCO ($)' },
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + (value / 1000).toFixed(0) + 'k';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
         function createFuelTypeChart() {
             const ctx = document.getElementById('fuelTypeChart').getContext('2d');
             if (charts.fuelType) charts.fuelType.destroy();
@@ -2136,6 +2111,92 @@
             });
         }
 
+        function createTCOBrandChart() {
+            const ctx = document.getElementById('tcoBrandChart').getContext('2d');
+            if (charts.tcoBrand) charts.tcoBrand.destroy();
+            
+            const brands = {};
+            filteredData.forEach(car => {
+                if (!brands[car.brand]) {
+                    brands[car.brand] = [];
+                }
+                brands[car.brand].push(car.tco);
+            });
+
+            const brandData = Object.keys(brands).map(brand => ({
+                brand: brand,
+                avgTCO: brands[brand].reduce((sum, tco) => sum + tco, 0) / brands[brand].length,
+                minTCO: Math.min(...brands[brand]),
+                maxTCO: Math.max(...brands[brand]),
+                count: brands[brand].length
+            })).sort((a, b) => a.avgTCO - b.avgTCO);
+
+            charts.tcoBrand = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: brandData.map(b => `${b.brand}\n(${b.count} cars)`),
+                    datasets: [{
+                        label: 'Average TCO',
+                        data: brandData.map(b => b.avgTCO),
+                        backgroundColor: brandData.map(b => {
+                            // Color coding by average TCO range
+                            if (b.avgTCO < 18000) return '#2ecc71'; // Green - Great value
+                            if (b.avgTCO < 25000) return '#27ae60'; // Dark green - Good value  
+                            if (b.avgTCO < 30000) return '#f39c12'; // Orange - Moderate
+                            if (b.avgTCO < 35000) return '#e67e22'; // Dark orange - Expensive
+                            return '#e74c3c'; // Red - Very expensive
+                        }),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const brand = brandData[context.dataIndex];
+                                    return `${brand.brand}: $${context.parsed.y.toLocaleString()} avg TCO (${brand.count} models)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Average TCO ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: { maxRotation: 45 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to create all charts
+        function createAllCharts() {
+            console.log('Creating all charts...');
+            createTCOReliabilityChart();
+            createDepreciationChart();
+            createTCOBrandChart(); // New brand chart
+            createFuelTypeChart();
+            createMaintenanceChart();
+            createInsuranceChart();
+            createEVDepreciationChart();
+            createHiddenCostsChart();
+            createCategoryTCOChart();
+            createReliabilityMaintenanceChart();
+            createStyleTCOChart();
+            console.log('All charts created successfully');
+        }
+
         function createReliabilityMaintenanceChart() {
             const ctx = document.getElementById('reliabilityMaintenanceChart').getContext('2d');
             if (charts.reliabilityMaintenance) charts.reliabilityMaintenance.destroy();
@@ -2272,20 +2333,6 @@
             });
         }
 
-        function createAllCharts() {
-            createTCOReliabilityChart();
-            createDepreciationChart();
-            createTCOBrandChart();
-            createFuelTypeChart();
-            createMaintenanceChart();
-            createInsuranceChart();
-            createEVDepreciationChart();
-            createHiddenCostsChart();
-            createCategoryTCOChart();
-            createReliabilityMaintenanceChart();
-            createStyleTCOChart();
-        }
-        
         // Color toggle functionality
         function getCarColor(car, mode) {
             if (!mode) {
@@ -2371,13 +2418,15 @@
             document.getElementById('fuelFilter').addEventListener('change', debouncedApplyFilters);
             document.getElementById('reliabilityFilter').addEventListener('change', debouncedApplyFilters);
             document.getElementById('brandFilter').addEventListener('change', debouncedApplyFilters);
+            document.getElementById('yearFilter').addEventListener('change', debouncedApplyFilters);
             
             // Color toggle event listener
             document.getElementById('colorMode').addEventListener('change', updateDashboard);
 
             // Add loading states
             [document.getElementById('budgetFilter'), document.getElementById('fuelFilter'), 
-             document.getElementById('reliabilityFilter'), document.getElementById('brandFilter')].forEach(filter => {
+             document.getElementById('reliabilityFilter'), document.getElementById('brandFilter'), 
+             document.getElementById('yearFilter')].forEach(filter => {
                 filter.addEventListener('change', () => {
                     document.body.classList.add('loading');
                     setTimeout(() => document.body.classList.remove('loading'), 500);
