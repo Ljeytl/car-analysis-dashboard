@@ -36,18 +36,35 @@ class CarScraper:
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         ]
         
-        # Target cars for scraping (from our existing dataset)
+        # Target cars for scraping (prioritized list from expanded dataset)
         self.target_cars = [
-            {'make': 'Tesla', 'model': 'Model 3', 'years': '2019-2024'},
+            # High Priority EVs & PHEVs
+            {'make': 'Tesla', 'model': 'Model 3', 'years': '2020-2024'},
             {'make': 'BMW', 'model': '330e', 'years': '2020-2022'},
-            {'make': 'Genesis', 'model': 'G70', 'years': '2020-2022'},
+            {'make': 'Hyundai', 'model': 'Ioniq 5', 'years': '2022-2024'},
+            
+            # Popular Mainstream Vehicles
             {'make': 'Toyota', 'model': 'RAV4 Hybrid', 'years': '2021-2023'},
+            {'make': 'Toyota', 'model': 'Camry', 'years': '2021-2023'},
             {'make': 'Honda', 'model': 'Civic', 'years': '2020-2024'},
-            {'make': 'Porsche', 'model': 'Cayman', 'years': '2018-2023'},
-            {'make': 'Lexus', 'model': 'ES Hybrid', 'years': '2019-2024'},
+            {'make': 'Honda', 'model': 'Accord', 'years': '2021-2023'},
+            {'make': 'Honda', 'model': 'CR-V', 'years': '2021-2023'},
+            
+            # Luxury & Sports
+            {'make': 'Genesis', 'model': 'G70', 'years': '2020-2022'},
+            {'make': 'Porsche', 'model': 'Cayman', 'years': '2019-2023'},
+            {'make': 'Lexus', 'model': 'ES Hybrid', 'years': '2020-2024'},
+            
+            # SUVs & Trucks
             {'make': 'Mazda', 'model': 'CX-5', 'years': '2020-2024'},
             {'make': 'Subaru', 'model': 'Outback', 'years': '2020-2024'},
-            {'make': 'Hyundai', 'model': 'Ioniq 5', 'years': '2022-2024'}
+            {'make': 'Toyota', 'model': 'Highlander', 'years': '2021-2023'},
+            {'make': 'Ford', 'model': 'F-150', 'years': '2021-2023'},
+            
+            # Budget Options
+            {'make': 'Nissan', 'model': 'Altima', 'years': '2022-2023'},
+            {'make': 'Chevrolet', 'model': 'Equinox', 'years': '2022-2023'},
+            {'make': 'Ford', 'model': 'Escape', 'years': '2022-2023'}
         ]
 
     async def get_random_user_agent(self) -> str:
@@ -272,16 +289,33 @@ class CarScraper:
     def get_fallback_price(self, make: str, model: str) -> Dict:
         """Fallback prices based on our existing data"""
         fallback_prices = {
-            'Tesla Model 3': {'min': 20000, 'max': 33000, 'avg': 26000},
-            'BMW 330e': {'min': 23000, 'max': 27500, 'avg': 25000},
-            'Genesis G70': {'min': 18000, 'max': 27000, 'avg': 22500},
-            'Toyota RAV4 Hybrid': {'min': 24000, 'max': 37000, 'avg': 30000},
-            'Honda Civic': {'min': 14000, 'max': 28000, 'avg': 21000},
-            'Porsche Cayman': {'min': 32000, 'max': 57000, 'avg': 44500},
-            'Lexus ES Hybrid': {'min': 28000, 'max': 40000, 'avg': 34000},
-            'Mazda CX-5': {'min': 18000, 'max': 30000, 'avg': 24000},
-            'Subaru Outback': {'min': 22000, 'max': 32000, 'avg': 27000},
-            'Hyundai Ioniq 5': {'min': 20000, 'max': 32000, 'avg': 26000}
+            # EVs & PHEVs
+            'Tesla Model 3': {'min': 18000, 'max': 44000, 'avg': 26000},
+            'BMW 330e': {'min': 21000, 'max': 30000, 'avg': 25000},
+            'Hyundai Ioniq 5': {'min': 25000, 'max': 45000, 'avg': 33000},
+            
+            # Popular Mainstream
+            'Toyota RAV4 Hybrid': {'min': 28000, 'max': 38000, 'avg': 32000},
+            'Toyota Camry': {'min': 21000, 'max': 32000, 'avg': 26000},
+            'Honda Civic': {'min': 16000, 'max': 32000, 'avg': 22000},
+            'Honda Accord': {'min': 22000, 'max': 33000, 'avg': 27000},
+            'Honda CR-V': {'min': 24000, 'max': 34000, 'avg': 29000},
+            
+            # Luxury & Sports
+            'Genesis G70': {'min': 20000, 'max': 29000, 'avg': 23000},
+            'Porsche Cayman': {'min': 38000, 'max': 75000, 'avg': 52000},
+            'Lexus ES Hybrid': {'min': 25000, 'max': 45000, 'avg': 36000},
+            
+            # SUVs & Trucks
+            'Mazda CX-5': {'min': 19000, 'max': 35000, 'avg': 26000},
+            'Subaru Outback': {'min': 22000, 'max': 36000, 'avg': 28000},
+            'Toyota Highlander': {'min': 33000, 'max': 45000, 'avg': 38000},
+            'Ford F-150': {'min': 28000, 'max': 55000, 'avg': 40000},
+            
+            # Budget Options
+            'Nissan Altima': {'min': 21000, 'max': 30000, 'avg': 25000},
+            'Chevrolet Equinox': {'min': 23000, 'max': 32000, 'avg': 27000},
+            'Ford Escape': {'min': 23000, 'max': 32000, 'avg': 27000}
         }
         
         key = f"{make} {model}"
@@ -319,7 +353,7 @@ class CarScraper:
         """Scrape prices for all target cars"""
         results = []
         
-        logger.info(f"Starting to scrape {len(self.target_cars)} cars")
+        logger.info(f"Starting to scrape {len(self.target_cars)} priority cars from expanded 130+ car dataset")
         
         for i, car in enumerate(self.target_cars):
             try:

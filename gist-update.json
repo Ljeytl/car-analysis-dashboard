@@ -1,0 +1,20 @@
+{
+  "cars": [],
+  "last_updated": "2025-01-14T00:00:00.000Z",
+  "description": "Custom cars for Car Analysis Dashboard",
+  "schema": {
+    "make": "string - Car manufacturer",
+    "model": "string - Car model name", 
+    "year": "number - Model year",
+    "price": "number - Purchase price in USD",
+    "fuel_type": "string - Gas/Hybrid/Electric/PHEV",
+    "depreciation_3yr_percent": "number - 3-year depreciation percentage",
+    "reliability_score": "number - Reliability rating 1-10",
+    "coolness_score": "number - Style/founder credibility 1-10",
+    "annual_fuel_cost": "number - Annual fuel cost in USD",
+    "maintenance_annual": "number - Annual maintenance cost in USD", 
+    "insurance_annual": "number - Annual insurance cost in USD",
+    "notes": "string - Additional notes",
+    "created_at": "string - ISO date when added"
+  }
+}

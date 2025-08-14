@@ -8,7 +8,8 @@ A comprehensive car buying analysis dashboard that combines static market data w
 
 ### 📊 Comprehensive Analysis
 - **3-Year TCO Calculations**: Total Cost of Ownership including depreciation, fuel, maintenance, and insurance
-- **58+ Car Models**: Extensive database covering budget to luxury vehicles
+- **130+ Car Models**: Massive database covering budget to luxury vehicles with year-by-year analysis
+- **Granular Year Filtering**: 2018-2024 model years with smart filtering (New/Recent/Value categories)
 - **Multiple Data Sources**: KBB, Edmunds, and live market pricing
 
 ### 🔴 Live Data Integration
@@ -90,18 +91,29 @@ Use the "🔄 Refresh Live Prices" button in the dashboard for immediate updates
 - **Error Handling**: Graceful fallbacks to cached data
 - **Logging**: Comprehensive scraping logs
 
-### Target Cars
-Currently tracking 10 high-priority vehicles:
-- Tesla Model 3 (2019-2024)
-- BMW 330e (2020-2022)  
-- Genesis G70 (2020-2022)
-- Toyota RAV4 Hybrid (2021-2023)
-- Honda Civic (2020-2024)
-- Porsche Cayman (2018-2023)
-- Lexus ES Hybrid (2019-2024)
-- Mazda CX-5 (2020-2024)
-- Subaru Outback (2020-2024)
+### Target Cars for Live Scraping
+Currently tracking 18 high-priority vehicles with live price data:
+
+**EVs & PHEVs:**
+- Tesla Model 3 (2020-2024)
+- BMW 330e (2020-2022)
 - Hyundai Ioniq 5 (2022-2024)
+
+**Popular Mainstream:**
+- Toyota RAV4 Hybrid, Camry (2021-2023)
+- Honda Civic, Accord, CR-V (2020-2024)
+
+**Luxury & Sports:**
+- Genesis G70 (2020-2022)
+- Porsche Cayman (2019-2023)  
+- Lexus ES Hybrid (2020-2024)
+
+**SUVs & Trucks:**
+- Mazda CX-5, Subaru Outback (2020-2024)
+- Toyota Highlander, Ford F-150 (2021-2023)
+
+**Budget Options:**
+- Nissan Altima, Chevrolet Equinox, Ford Escape (2022-2023)
 
 ## File Structure
 
