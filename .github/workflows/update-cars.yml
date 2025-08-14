@@ -1,0 +1,43 @@
+name: Update Family Car Database
+
+on:
+  repository_dispatch:
+    types: [add-car]
+
+jobs:
+  update-cars:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Update car database
+      run: |
+        # Get car data from the dispatch payload
+        echo '${{ github.event.client_payload.car_data }}' > temp_car.json
+        
+        # Read current database
+        if [ -f "shared_custom_cars.json" ]; then
+          cp shared_custom_cars.json current_cars.json
+        else
+          echo '{"cars":[],"last_updated":"","description":"Shared family car database","contributors":[]}' > current_cars.json
+        fi
+        
+        # Merge new car with existing data using jq
+        jq --argjson newcar "$(cat temp_car.json)" '
+          .cars += [$newcar] |
+          .last_updated = now | strftime("%Y-%m-%dT%H:%M:%S.%fZ") |
+          .contributors = (.contributors + [$newcar.added_by] | unique)
+        ' current_cars.json > shared_custom_cars.json
+        
+        # Clean up
+        rm temp_car.json current_cars.json
+        
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "Family Car Bot"
+        git add shared_custom_cars.json
+        git commit -m "🚗 Added new car: ${{ github.event.client_payload.car_data.make }} ${{ github.event.client_payload.car_data.model }} by ${{ github.event.client_payload.car_data.added_by }}" || exit 0
+        git push

@@ -1000,6 +1000,9 @@
                         ➕ Add Car to Analysis
                     </button>
                     <br>
+                    <button onclick="saveAllCarsToSharedFile()" style="background: #9b59b6; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-size: 14px; cursor: pointer; margin: 5px;">
+                        👨‍👩‍👧‍👦 Save to Family Database
+                    </button>
                     <button onclick="exportManualCarsToCSV()" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-size: 14px; cursor: pointer; margin: 5px;">
                         📥 Export My Cars
                     </button>
@@ -1105,7 +1108,303 @@
             </div>
         </div>
         
-        <div class="table-container">
+    <!-- Personalized Recommendation Engine -->
+    <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; color: white;">
+        <h2 style="text-align: center; margin-bottom: 30px; font-size: 2rem;">🎯 Personal Car Recommendation Engine</h2>
+        <p style="text-align: center; margin-bottom: 30px; opacity: 0.9;">Tell us what matters most to you, and we'll find your perfect car match!</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div class="preference-slider">
+                <label for="costWeight">💰 Low Cost (0-10):</label>
+                <input type="range" id="costWeight" min="0" max="10" value="7" oninput="updateRecommendations()">
+                <span id="costWeightValue">7</span>
+            </div>
+            
+            <div class="preference-slider">
+                <label for="tcoWeight">📊 Low TCO (0-10):</label>
+                <input type="range" id="tcoWeight" min="0" max="10" value="8" oninput="updateRecommendations()">
+                <span id="tcoWeightValue">8</span>
+            </div>
+            
+            <div class="preference-slider">
+                <label for="reliabilityWeight">🔧 Reliability (0-10):</label>
+                <input type="range" id="reliabilityWeight" min="0" max="10" value="9" oninput="updateRecommendations()">
+                <span id="reliabilityWeightValue">9</span>
+            </div>
+            
+            <div class="preference-slider">
+                <label for="styleWeight">✨ Style/Coolness (0-10):</label>
+                <input type="range" id="styleWeight" min="0" max="10" value="6" oninput="updateRecommendations()">
+                <span id="styleWeightValue">6</span>
+            </div>
+            
+            <div class="preference-slider">
+                <label for="fuelWeight">⛽ Fuel Efficiency (0-10):</label>
+                <input type="range" id="fuelWeight" min="0" max="10" value="7" oninput="updateRecommendations()">
+                <span id="fuelWeightValue">7</span>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div>
+                <h3 style="margin-bottom: 20px;">📈 Your Weighted Scores</h3>
+                <canvas id="personalizedChart" style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 10px;"></canvas>
+            </div>
+            
+            <div>
+                <h3 style="margin-bottom: 20px;">⛽ Top 5 Recommendations</h3>
+                <div id="recommendationsList" style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; min-height: 300px;">
+                    <!-- Recommendations will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Personalized recommendation system
+        let personalizedChart = null;
+        
+        function updateRecommendations() {
+            // Update slider value displays
+            document.getElementById('costWeightValue').textContent = document.getElementById('costWeight').value;
+            document.getElementById('tcoWeightValue').textContent = document.getElementById('tcoWeight').value;
+            document.getElementById('reliabilityWeightValue').textContent = document.getElementById('reliabilityWeight').value;
+            document.getElementById('styleWeightValue').textContent = document.getElementById('styleWeight').value;
+            document.getElementById('fuelWeightValue').textContent = document.getElementById('fuelWeight').value;
+            
+            // Calculate weighted scores for all cars
+            const weights = {
+                cost: parseFloat(document.getElementById('costWeight').value),
+                tco: parseFloat(document.getElementById('tcoWeight').value),
+                reliability: parseFloat(document.getElementById('reliabilityWeight').value),
+                style: parseFloat(document.getElementById('styleWeight').value),
+                luxury: parseFloat(document.getElementById('fuelWeight').value)
+            };
+            
+            // Skip if no data loaded yet
+            if (!carData || carData.length === 0) return;
+            
+            const scoredCars = calculateWeightedScores(carData, weights);
+            updatePersonalizedChart(scoredCars.slice(0, 10));
+            updateRecommendationsList(scoredCars.slice(0, 5));
+        }
+        
+        function calculateWeightedScores(cars, weights) {
+            return cars.map(car => {
+                // Normalize scores to 0-10 scale
+                const maxPrice = Math.max(...cars.map(c => c.price));
+                const maxTCO = Math.max(...cars.map(c => c.tco));
+                
+                const scores = {
+                    cost: (1 - (car.price / maxPrice)) * 10, // Lower price = higher score
+                    tco: (1 - (car.tco / maxTCO)) * 10,      // Lower TCO = higher score
+                    reliability: car.reliability || 7,        // Already 0-10
+                    style: car.founderCredibility || 5,       // Use coolness score if available
+                    fuel: (1 - (car.fuelCost / 2000)) * 10        // Lower fuel cost = higher score
+                };
+                
+                // Calculate weighted score
+                const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+                const weightedScore = (
+                    scores.cost * weights.cost +
+                    scores.tco * weights.tco +
+                    scores.reliability * weights.reliability +
+                    scores.style * weights.style +
+                    scores.fuel * weights.fuel
+                ) / totalWeight;
+                
+                return {
+                    ...car,
+                    scores,
+                    weightedScore: Math.round(weightedScore * 100) / 100,
+                    recommendation: getRecommendationReason(scores, weights)
+                };
+            }).sort((a, b) => b.weightedScore - a.weightedScore);
+        }
+        
+        function getRecommendationReason(scores, weights) {
+            const topFactors = Object.entries(weights)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 2)
+                .map(([factor]) => {
+                    switch(factor) {
+                        case 'cost': return 'affordable price';
+                        case 'tco': return 'low total cost';
+                        case 'reliability': return 'proven reliability';
+                        case 'style': return 'great style';
+                        case 'fuel': return 'excellent fuel economy';
+                    }
+                });
+            
+            return `Perfect for: ${topFactors.join(' + ')}`;
+        }
+        
+        function updatePersonalizedChart(topCars) {
+            const ctx = document.getElementById('personalizedChart').getContext('2d');
+            
+            if (personalizedChart) {
+                personalizedChart.destroy();
+            }
+            
+            personalizedChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topCars.map(car => car.name.substring(0, 15) + '...'),
+                    datasets: [{
+                        label: 'Weighted Score',
+                        data: topCars.map(car => car.weightedScore),
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return topCars[tooltipItems[0].dataIndex].name;
+                                },
+                                label: function(context) {
+                                    const car = topCars[context.dataIndex];
+                                    return [
+                                        `Weighted Score: ${car.weightedScore}/10`,
+                                        `Price: $${car.price.toLocaleString()}`,
+                                        `TCO: $${car.tco.toLocaleString()}`,
+                                        `Reliability: ${car.reliability}/10`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { color: 'rgba(255, 255, 255, 0.8)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.2)' }
+                        },
+                        x: {
+                            ticks: { 
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                maxRotation: 45 
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.2)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateRecommendationsList(topCars) {
+            const listElement = document.getElementById('recommendationsList');
+            
+            if (topCars.length === 0) {
+                listElement.innerHTML = '<p style="text-align: center; opacity: 0.7;">Loading recommendations...</p>';
+                return;
+            }
+            
+            listElement.innerHTML = topCars.map((car, index) => `
+                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid ${index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : 'rgba(255,255,255,0.3)'};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong style="font-size: 1.1em;">${index + 1}. ${car.name}</strong>
+                        <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-weight: bold;">
+                            ${car.weightedScore}/10
+                        </span>
+                    </div>
+                    <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px;">
+                        💰 $${car.price.toLocaleString()} | 📊 $${car.tco.toLocaleString()} TCO | 🔧 ${car.reliability}/10
+                    </div>
+                    <div style="font-size: 0.85em; opacity: 0.8; font-style: italic;">
+                        ${car.recommendation}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Initialize recommendations when data loads
+        function initializePersonalizedRecommendations() {
+            if (carData && carData.length > 0) {
+                updateRecommendations();
+            }
+        }
+        
+        // Add to the initialization sequence
+        const originalInitializeDashboard = initializeDashboard;
+        initializeDashboard = function() {
+            originalInitializeDashboard();
+            setTimeout(initializePersonalizedRecommendations, 500);
+        };
+    </script>
+    
+    <style>
+        .preference-slider {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+        }
+        
+        .preference-slider label {
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .preference-slider input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+        
+        .preference-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .preference-slider input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .preference-slider span {
+            font-weight: bold;
+            font-size: 1.1em;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            align-self: center;
+            min-width: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .preference-slider {
+                font-size: 0.8em;
+            }
+            
+            .preference-slider label {
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</body>
+</html>        <div class="table-container">
             <table class="data-table" id="carDataTable">
                 <thead>
                     <tr>
@@ -1316,11 +1615,26 @@
                 carData = parseCSVData(csvText);
                 console.log(`Loaded ${carData.length} cars from CSV`);
                 
-                // Load manual cars from local storage and add to dataset
-                const manualCars = loadManualCarsFromStorage();
-                if (manualCars.length > 0) {
-                    carData.push(...manualCars);
-                    console.log(`Added ${manualCars.length} manual cars from storage`);
+                // Load manual cars from shared family file first, then local storage as backup
+                const sharedCars = await loadCarsFromSharedFile();
+                const localCars = loadManualCarsFromStorage();
+                
+                // Merge cars from both sources, preferring shared file over local
+                const allManualCars = [...sharedCars];
+                localCars.forEach(localCar => {
+                    const exists = sharedCars.some(sharedCar => 
+                        sharedCar.make === localCar.make && 
+                        sharedCar.model === localCar.model && 
+                        sharedCar.year === localCar.year
+                    );
+                    if (!exists) {
+                        allManualCars.push(localCar);
+                    }
+                });
+                
+                if (allManualCars.length > 0) {
+                    carData.push(...allManualCars);
+                    console.log(`Added ${allManualCars.length} manual cars (${sharedCars.length} from shared file, ${localCars.length} from local storage)`);
                 }
                 
                 // Count how many have live data
@@ -2661,8 +2975,26 @@
             carData.push(newCar);
             filteredData = [...carData];
             
-            // Save to local storage for persistence
+            // Save to local storage immediately, then sync to Gist
+            newCar.createdAt = new Date().toISOString();
             saveManualCarsToStorage();
+            
+            // Add "added by" info and auto-save to GitHub
+            newCar.addedBy = prompt('Who is adding this car? (for family tracking)', 'User') || 'User';
+            
+            // Try to auto-save to GitHub via repository dispatch
+            if (SHARED_STORAGE_CONFIG.githubToken) {
+                console.log('🚗 New car added! Auto-saving to GitHub...');
+                autoSaveCarToGitHub(newCar).then(success => {
+                    if (success) {
+                        alert(`🎉 Car saved! GitHub Action will update the family database.\n\n${newCar.name} added by ${newCar.addedBy}\n\nEveryone will see it in ~30 seconds when they refresh!`);
+                    } else {
+                        alert(`⚠️ Car added locally but auto-save failed.\n\nUse "Save to Family Database" button to sync manually.`);
+                    }
+                });
+            } else {
+                console.log('🚗 New car added! Click "Save to Family Database" to share with everyone.');
+            }
 
             // Update filters and dashboard
             populateBrandFilter();
@@ -2675,7 +3007,199 @@
             console.log('Added manual car:', newCar);
         }
 
-        // Local Storage Functions for Persistence
+        // Shared Family Car Storage Configuration (Local only)
+        const SHARED_STORAGE_CONFIG = {
+            filename: './shared_custom_cars.json',
+            description: 'Shared family car database (local storage only)',
+        };
+
+        // Simple encryption/decryption functions (basic obfuscation)
+        function simpleEncrypt(text, key) {
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                result += String.fromCharCode(charCode);
+            }
+            return btoa(result); // Base64 encode
+        }
+
+        function simpleDecrypt(encryptedText, key) {
+            try {
+                const decodedText = atob(encryptedText); // Base64 decode
+                let result = '';
+                for (let i = 0; i < decodedText.length; i++) {
+                    const charCode = decodedText.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                    result += String.fromCharCode(charCode);
+                }
+                return result;
+            } catch (error) {
+                console.error('Decryption failed:', error);
+                return null;
+            }
+        }
+
+        // Auto-save individual car to GitHub via repository dispatch
+        async function autoSaveCarToGitHub(car) {
+            if (!SHARED_STORAGE_CONFIG.githubToken) {
+                console.log('🔑 No GitHub token configured - skipping auto-save');
+                return false;
+            }
+
+            try {
+                const carData = {
+                    make: car.make,
+                    model: car.model,
+                    year: car.year,
+                    price: car.price,
+                    fuel_type: car.fuel,
+                    depreciation_3yr_percent: car.depreciation,
+                    reliability_score: car.reliability,
+                    coolness_score: car.founderCredibility,
+                    annual_fuel_cost: car.fuelCost,
+                    maintenance_annual: car.maintenanceCost,
+                    insurance_annual: car.insuranceCost,
+                    notes: car.notes,
+                    created_at: car.createdAt || new Date().toISOString(),
+                    added_by: car.addedBy || 'User'
+                };
+
+                const response = await fetch(`https://api.github.com/repos/${SHARED_STORAGE_CONFIG.githubOwner}/${SHARED_STORAGE_CONFIG.githubRepo}/dispatches`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SHARED_STORAGE_CONFIG.githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_type: 'add-car',
+                        client_payload: {
+                            car_data: carData
+                        }
+                    })
+                });
+
+                if (response.ok || response.status === 204) {
+                    console.log('🚀 Car auto-saved to GitHub! Action will update the database.');
+                    return true;
+                } else {
+                    console.error('Failed to trigger GitHub Action:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error auto-saving to GitHub:', error);
+                return false;
+            }
+        }
+
+        // Shared Family Car Storage Functions
+        async function saveAllCarsToSharedFile() {
+            const manualCars = carData.filter(car => car.isManual);
+            
+            if (manualCars.length === 0) {
+                alert('No custom cars to save! Add some cars first.');
+                return false;
+            }
+            
+            const sharedData = {
+                cars: manualCars.map(car => ({
+                    make: car.make,
+                    model: car.model,
+                    year: car.year,
+                    price: car.price,
+                    fuel_type: car.fuel,
+                    depreciation_3yr_percent: car.depreciation,
+                    reliability_score: car.reliability,
+                    coolness_score: car.founderCredibility,
+                    annual_fuel_cost: car.fuelCost,
+                    maintenance_annual: car.maintenanceCost,
+                    insurance_annual: car.insuranceCost,
+                    notes: car.notes,
+                    created_at: car.createdAt || new Date().toISOString(),
+                    added_by: car.addedBy || 'User'
+                })),
+                last_updated: new Date().toISOString(),
+                description: 'Shared family car database',
+                contributors: [...new Set(manualCars.map(car => car.addedBy || 'User'))]
+            };
+
+            try {
+                const jsonString = JSON.stringify(sharedData, null, 2);
+                
+                // Copy to clipboard for manual update
+                navigator.clipboard.writeText(jsonString).then(() => {
+                    alert(`👨‍👩‍👧‍👦 Family car data copied to clipboard!\n\n${manualCars.length} cars ready to save.\n\nTo share with family:\n1. Open shared_custom_cars.json in your project\n2. Replace the contents with the clipboard data (Ctrl+V)\n3. Save the file\n4. Commit to your repo so everyone can access it!`);
+                }).catch(() => {
+                    // Fallback if clipboard doesn't work
+                    const textarea = document.createElement('textarea');
+                    textarea.value = jsonString;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    alert(`👨‍👩‍👧‍👦 Family car data copied!\n\n${manualCars.length} cars ready to save.`);
+                });
+                
+                console.log('📋 Family car data (copied to clipboard):');
+                console.log(jsonString);
+                
+                return true;
+            } catch (error) {
+                console.error('Error preparing shared car data:', error);
+                alert('❌ Error preparing family car data. Check console for details.');
+                return false;
+            }
+        }
+
+        async function loadCarsFromSharedFile() {
+            try {
+                const response = await fetch(SHARED_STORAGE_CONFIG.filename);
+                
+                if (response.ok) {
+                    const sharedData = await response.json();
+                    console.log('👨‍👩‍👧‍👦 Loading family car database...');
+                    
+                    const sharedCars = sharedData.cars?.map(car => ({
+                        name: `${car.make} ${car.model} (${car.year})`,
+                        make: car.make,
+                        model: car.model,
+                        year: car.year,
+                        price: car.price,
+                        depreciation: car.depreciation_3yr_percent,
+                        fuel: car.fuel_type,
+                        brand: car.make,
+                        category: getDefaultCategory(car.fuel_type, car.model),
+                        reliability: car.reliability_score,
+                        fuelCost: car.annual_fuel_cost,
+                        maintenanceCost: car.maintenance_annual,
+                        insuranceCost: car.insurance_annual,
+                        founderCredibility: car.coolness_score,
+                        notes: car.notes,
+                        isManual: true,
+                        createdAt: car.created_at,
+                        addedBy: car.added_by,
+                        tco: Math.round(
+                            car.price * (car.depreciation_3yr_percent / 100) + 
+                            (car.annual_fuel_cost + car.maintenance_annual + car.insurance_annual) * 3
+                        )
+                    })) || [];
+                    
+                    console.log(`Loaded ${sharedCars.length} cars from shared family database`);
+                    if (sharedData.contributors?.length > 0) {
+                        console.log(`Contributors: ${sharedData.contributors.join(', ')}`);
+                    }
+                    return sharedCars;
+                } else {
+                    console.log('No shared family car database found, starting fresh');
+                    return [];
+                }
+            } catch (error) {
+                console.log('Shared family database not found or error loading:', error.message);
+                return [];
+            }
+        }
+
+        // Local Storage Functions for Backup
         function saveManualCarsToStorage() {
             const manualCars = carData.filter(car => car.isManual);
             try {
@@ -2930,300 +3454,5 @@
         });
     </script>
     
-    <!-- Personalized Recommendation Engine -->
-    <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; color: white;">
-        <h2 style="text-align: center; margin-bottom: 30px; font-size: 2rem;">🎯 Personal Car Recommendation Engine</h2>
-        <p style="text-align: center; margin-bottom: 30px; opacity: 0.9;">Tell us what matters most to you, and we'll find your perfect car match!</p>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
-            <div class="preference-slider">
-                <label for="costWeight">💰 Low Cost (0-10):</label>
-                <input type="range" id="costWeight" min="0" max="10" value="7" oninput="updateRecommendations()">
-                <span id="costWeightValue">7</span>
-            </div>
-            
-            <div class="preference-slider">
-                <label for="tcoWeight">📊 Low TCO (0-10):</label>
-                <input type="range" id="tcoWeight" min="0" max="10" value="8" oninput="updateRecommendations()">
-                <span id="tcoWeightValue">8</span>
-            </div>
-            
-            <div class="preference-slider">
-                <label for="reliabilityWeight">🔧 Reliability (0-10):</label>
-                <input type="range" id="reliabilityWeight" min="0" max="10" value="9" oninput="updateRecommendations()">
-                <span id="reliabilityWeightValue">9</span>
-            </div>
-            
-            <div class="preference-slider">
-                <label for="styleWeight">✨ Style/Coolness (0-10):</label>
-                <input type="range" id="styleWeight" min="0" max="10" value="6" oninput="updateRecommendations()">
-                <span id="styleWeightValue">6</span>
-            </div>
-            
-            <div class="preference-slider">
-                <label for="fuelWeight">⛽ Fuel Efficiency (0-10):</label>
-                <input type="range" id="fuelWeight" min="0" max="10" value="7" oninput="updateRecommendations()">
-                <span id="fuelWeightValue">7</span>
-            </div>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-            <div>
-                <h3 style="margin-bottom: 20px;">📈 Your Weighted Scores</h3>
-                <canvas id="personalizedChart" style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 10px;"></canvas>
-            </div>
-            
-            <div>
-                <h3 style="margin-bottom: 20px;">⛽ Top 5 Recommendations</h3>
-                <div id="recommendationsList" style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; min-height: 300px;">
-                    <!-- Recommendations will be populated here -->
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Personalized recommendation system
-        let personalizedChart = null;
-        
-        function updateRecommendations() {
-            // Update slider value displays
-            document.getElementById('costWeightValue').textContent = document.getElementById('costWeight').value;
-            document.getElementById('tcoWeightValue').textContent = document.getElementById('tcoWeight').value;
-            document.getElementById('reliabilityWeightValue').textContent = document.getElementById('reliabilityWeight').value;
-            document.getElementById('styleWeightValue').textContent = document.getElementById('styleWeight').value;
-            document.getElementById('fuelWeightValue').textContent = document.getElementById('fuelWeight').value;
-            
-            // Calculate weighted scores for all cars
-            const weights = {
-                cost: parseFloat(document.getElementById('costWeight').value),
-                tco: parseFloat(document.getElementById('tcoWeight').value),
-                reliability: parseFloat(document.getElementById('reliabilityWeight').value),
-                style: parseFloat(document.getElementById('styleWeight').value),
-                luxury: parseFloat(document.getElementById('fuelWeight').value)
-            };
-            
-            // Skip if no data loaded yet
-            if (!carData || carData.length === 0) return;
-            
-            const scoredCars = calculateWeightedScores(carData, weights);
-            updatePersonalizedChart(scoredCars.slice(0, 10));
-            updateRecommendationsList(scoredCars.slice(0, 5));
-        }
-        
-        function calculateWeightedScores(cars, weights) {
-            return cars.map(car => {
-                // Normalize scores to 0-10 scale
-                const maxPrice = Math.max(...cars.map(c => c.price));
-                const maxTCO = Math.max(...cars.map(c => c.tco));
-                
-                const scores = {
-                    cost: (1 - (car.price / maxPrice)) * 10, // Lower price = higher score
-                    tco: (1 - (car.tco / maxTCO)) * 10,      // Lower TCO = higher score
-                    reliability: car.reliability || 7,        // Already 0-10
-                    style: car.founderCredibility || 5,       // Use coolness score if available
-                    fuel: (1 - (car.fuelCost / 2000)) * 10        // Lower fuel cost = higher score
-                };
-                
-                // Calculate weighted score
-                const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
-                const weightedScore = (
-                    scores.cost * weights.cost +
-                    scores.tco * weights.tco +
-                    scores.reliability * weights.reliability +
-                    scores.style * weights.style +
-                    scores.fuel * weights.fuel
-                ) / totalWeight;
-                
-                return {
-                    ...car,
-                    scores,
-                    weightedScore: Math.round(weightedScore * 100) / 100,
-                    recommendation: getRecommendationReason(scores, weights)
-                };
-            }).sort((a, b) => b.weightedScore - a.weightedScore);
-        }
-        
-        function getRecommendationReason(scores, weights) {
-            const topFactors = Object.entries(weights)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 2)
-                .map(([factor]) => {
-                    switch(factor) {
-                        case 'cost': return 'affordable price';
-                        case 'tco': return 'low total cost';
-                        case 'reliability': return 'proven reliability';
-                        case 'style': return 'great style';
-                        case 'fuel': return 'excellent fuel economy';
-                    }
-                });
-            
-            return `Perfect for: ${topFactors.join(' + ')}`;
-        }
-        
-        function updatePersonalizedChart(topCars) {
-            const ctx = document.getElementById('personalizedChart').getContext('2d');
-            
-            if (personalizedChart) {
-                personalizedChart.destroy();
-            }
-            
-            personalizedChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: topCars.map(car => car.name.substring(0, 15) + '...'),
-                    datasets: [{
-                        label: 'Weighted Score',
-                        data: topCars.map(car => car.weightedScore),
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        borderColor: 'rgba(255, 255, 255, 1)',
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title: function(tooltipItems) {
-                                    return topCars[tooltipItems[0].dataIndex].name;
-                                },
-                                label: function(context) {
-                                    const car = topCars[context.dataIndex];
-                                    return [
-                                        `Weighted Score: ${car.weightedScore}/10`,
-                                        `Price: $${car.price.toLocaleString()}`,
-                                        `TCO: $${car.tco.toLocaleString()}`,
-                                        `Reliability: ${car.reliability}/10`
-                                    ];
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 10,
-                            ticks: { color: 'rgba(255, 255, 255, 0.8)' },
-                            grid: { color: 'rgba(255, 255, 255, 0.2)' }
-                        },
-                        x: {
-                            ticks: { 
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                maxRotation: 45 
-                            },
-                            grid: { color: 'rgba(255, 255, 255, 0.2)' }
-                        }
-                    }
-                }
-            });
-        }
-        
-        function updateRecommendationsList(topCars) {
-            const listElement = document.getElementById('recommendationsList');
-            
-            if (topCars.length === 0) {
-                listElement.innerHTML = '<p style="text-align: center; opacity: 0.7;">Loading recommendations...</p>';
-                return;
-            }
-            
-            listElement.innerHTML = topCars.map((car, index) => `
-                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid ${index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : 'rgba(255,255,255,0.3)'};">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <strong style="font-size: 1.1em;">${index + 1}. ${car.name}</strong>
-                        <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-weight: bold;">
-                            ${car.weightedScore}/10
-                        </span>
-                    </div>
-                    <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px;">
-                        💰 $${car.price.toLocaleString()} | 📊 $${car.tco.toLocaleString()} TCO | 🔧 ${car.reliability}/10
-                    </div>
-                    <div style="font-size: 0.85em; opacity: 0.8; font-style: italic;">
-                        ${car.recommendation}
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Initialize recommendations when data loads
-        function initializePersonalizedRecommendations() {
-            if (carData && carData.length > 0) {
-                updateRecommendations();
-            }
-        }
-        
-        // Add to the initialization sequence
-        const originalInitializeDashboard = initializeDashboard;
-        initializeDashboard = function() {
-            originalInitializeDashboard();
-            setTimeout(initializePersonalizedRecommendations, 500);
-        };
-    </script>
-    
-    <style>
-        .preference-slider {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            text-align: center;
-        }
-        
-        .preference-slider label {
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-        
-        .preference-slider input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            height: 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            outline: none;
-        }
-        
-        .preference-slider input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        
-        .preference-slider input[type="range"]::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        
-        .preference-slider span {
-            font-weight: bold;
-            font-size: 1.1em;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 8px;
-            border-radius: 12px;
-            align-self: center;
-            min-width: 30px;
-        }
-        
-        @media (max-width: 768px) {
-            .preference-slider {
-                font-size: 0.8em;
-            }
-            
-            .preference-slider label {
-                font-size: 0.8em;
-            }
-        }
-    </style>
 </body>
 </html>
