@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Purchase Analysis Dashboard - Seed Stage Founder</title>
+    <title>Smart Car Buyer - TCO Analysis Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
@@ -233,8 +233,8 @@
 <body>
     <div class="dashboard">
         <div class="header">
-            <h1>🚗 Car Purchase Analysis Dashboard</h1>
-            <p>Data-driven car selection for seed stage founder in SF Bay Area</p>
+            <h1>🚗 Smart Car Buyer</h1>
+            <p>Smart car buying with 3-year total cost analysis</p>
             <button class="scrape-button" onclick="scrapeLatestPrices()">📡 Scrape Live Prices & Ratings</button>
             
             <div class="color-legend">
@@ -500,7 +500,7 @@
                         let value = values[index];
                         // Convert numeric fields
                         if (['price_range_low', 'price_range_high', 'annual_fuel_cost', 'tco_3yr_low', 'tco_3yr_high', 
-                             'founder_credibility_score', 'reliability_score', 'depreciation_3yr_percent'].includes(header)) {
+                             'style_score', 'reliability_score', 'depreciation_3yr_percent'].includes(header)) {
                             value = parseInt(value) || 0;
                         }
                         car[header] = value;
@@ -514,94 +514,94 @@
                 console.error('Error loading CSV:', error);
                 alert('Could not load car data. Please make sure comprehensive_car_analysis.csv is in the same directory as this HTML file.');
                 return;
-                {make: 'Tesla', model: 'Model Y', price_range_low: 30000, price_range_high: 45000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 14750, tco_3yr_high: 22600, founder_credibility_score: 3, reliability_score: 8, depreciation_3yr_percent: 42},
-                {make: 'Tesla', model: 'Model S', price_range_low: 40000, price_range_high: 70000, category: 'Luxury EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 24275, tco_3yr_high: 42775, founder_credibility_score: 6, reliability_score: 7, depreciation_3yr_percent: 45},
-                {make: 'BMW', model: 'i4', price_range_low: 40000, price_range_high: 55000, category: 'Luxury EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 20075, tco_3yr_high: 29325, founder_credibility_score: 7, reliability_score: 8, depreciation_3yr_percent: 28},
-                {make: 'Genesis', model: 'GV60', price_range_low: 45000, price_range_high: 60000, category: 'Luxury EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 22675, tco_3yr_high: 31325, founder_credibility_score: 6, reliability_score: 8, depreciation_3yr_percent: 35},
-                {make: 'Chevrolet', model: 'Bolt EUV', price_range_low: 15000, price_range_high: 25000, category: 'Budget EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 7075, tco_3yr_high: 12575, founder_credibility_score: 2, reliability_score: 6, depreciation_3yr_percent: 50},
-                {make: 'Nissan', model: 'Leaf', price_range_low: 12000, price_range_high: 22000, category: 'Budget EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 6500, tco_3yr_high: 14500, founder_credibility_score: 1, reliability_score: 5, depreciation_3yr_percent: 55},
-                {make: 'Hyundai', model: 'Ioniq 5', price_range_low: 32000, price_range_high: 42000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 18500, tco_3yr_high: 25500, founder_credibility_score: 5, reliability_score: 7, depreciation_3yr_percent: 38},
-                {make: 'Kia', model: 'EV6', price_range_low: 28000, price_range_high: 38000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 16200, tco_3yr_high: 23200, founder_credibility_score: 4, reliability_score: 7, depreciation_3yr_percent: 40},
+                {make: 'Tesla', model: 'Model Y', price_range_low: 30000, price_range_high: 45000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 14750, tco_3yr_high: 22600, style_score: 3, reliability_score: 8, depreciation_3yr_percent: 42},
+                {make: 'Tesla', model: 'Model S', price_range_low: 40000, price_range_high: 70000, category: 'Luxury EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 24275, tco_3yr_high: 42775, style_score: 6, reliability_score: 7, depreciation_3yr_percent: 45},
+                {make: 'BMW', model: 'i4', price_range_low: 40000, price_range_high: 55000, category: 'Luxury EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 20075, tco_3yr_high: 29325, style_score: 7, reliability_score: 8, depreciation_3yr_percent: 28},
+                {make: 'Genesis', model: 'GV60', price_range_low: 45000, price_range_high: 60000, category: 'Luxury EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 22675, tco_3yr_high: 31325, style_score: 6, reliability_score: 8, depreciation_3yr_percent: 35},
+                {make: 'Chevrolet', model: 'Bolt EUV', price_range_low: 15000, price_range_high: 25000, category: 'Budget EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 7075, tco_3yr_high: 12575, style_score: 2, reliability_score: 6, depreciation_3yr_percent: 50},
+                {make: 'Nissan', model: 'Leaf', price_range_low: 12000, price_range_high: 22000, category: 'Budget EV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 6500, tco_3yr_high: 14500, style_score: 1, reliability_score: 5, depreciation_3yr_percent: 55},
+                {make: 'Hyundai', model: 'Ioniq 5', price_range_low: 32000, price_range_high: 42000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 18500, tco_3yr_high: 25500, style_score: 5, reliability_score: 7, depreciation_3yr_percent: 38},
+                {make: 'Kia', model: 'EV6', price_range_low: 28000, price_range_high: 38000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 16200, tco_3yr_high: 23200, style_score: 4, reliability_score: 7, depreciation_3yr_percent: 40},
                 
                 // PHEVs
-                {make: 'BMW', model: '330e', price_range_low: 23000, price_range_high: 27500, category: 'Luxury PHEV', fuel_type: 'PHEV', annual_fuel_cost: 400, tco_3yr_low: 17050, tco_3yr_high: 20350, founder_credibility_score: 6, reliability_score: 7, depreciation_3yr_percent: 38},
-                {make: 'Toyota', model: 'Prius Prime', price_range_low: 20000, price_range_high: 28000, category: 'PHEV Hatchback', fuel_type: 'PHEV', annual_fuel_cost: 350, tco_3yr_low: 13250, tco_3yr_high: 20250, founder_credibility_score: 2, reliability_score: 9, depreciation_3yr_percent: 28},
-                {make: 'Honda', model: 'Clarity PHEV', price_range_low: 18000, price_range_high: 25000, category: 'PHEV Sedan', fuel_type: 'PHEV', annual_fuel_cost: 380, tco_3yr_low: 12800, tco_3yr_high: 18800, founder_credibility_score: 3, reliability_score: 8, depreciation_3yr_percent: 35},
+                {make: 'BMW', model: '330e', price_range_low: 23000, price_range_high: 27500, category: 'Luxury PHEV', fuel_type: 'PHEV', annual_fuel_cost: 400, tco_3yr_low: 17050, tco_3yr_high: 20350, style_score: 6, reliability_score: 7, depreciation_3yr_percent: 38},
+                {make: 'Toyota', model: 'Prius Prime', price_range_low: 20000, price_range_high: 28000, category: 'PHEV Hatchback', fuel_type: 'PHEV', annual_fuel_cost: 350, tco_3yr_low: 13250, tco_3yr_high: 20250, style_score: 2, reliability_score: 9, depreciation_3yr_percent: 28},
+                {make: 'Honda', model: 'Clarity PHEV', price_range_low: 18000, price_range_high: 25000, category: 'PHEV Sedan', fuel_type: 'PHEV', annual_fuel_cost: 380, tco_3yr_low: 12800, tco_3yr_high: 18800, style_score: 3, reliability_score: 8, depreciation_3yr_percent: 35},
                 
                 // Hybrids
-                {make: 'Toyota', model: 'RAV4 Hybrid', price_range_low: 26500, price_range_high: 33700, category: 'Hybrid SUV', fuel_type: 'Hybrid', annual_fuel_cost: 800, tco_3yr_low: 18450, tco_3yr_high: 23550, founder_credibility_score: 2, reliability_score: 9, depreciation_3yr_percent: 19},
-                {make: 'Toyota', model: 'Camry Hybrid', price_range_low: 23000, price_range_high: 30000, category: 'Hybrid Sedan', fuel_type: 'Hybrid', annual_fuel_cost: 600, tco_3yr_low: 16000, tco_3yr_high: 22200, founder_credibility_score: 2, reliability_score: 9, depreciation_3yr_percent: 22},
-                {make: 'Honda', model: 'CR-V Hybrid', price_range_low: 25000, price_range_high: 32000, category: 'Hybrid SUV', fuel_type: 'Hybrid', annual_fuel_cost: 850, tco_3yr_low: 18350, tco_3yr_high: 24350, founder_credibility_score: 3, reliability_score: 8, depreciation_3yr_percent: 24},
-                {make: 'Honda', model: 'Accord Hybrid', price_range_low: 22000, price_range_high: 29000, category: 'Hybrid Sedan', fuel_type: 'Hybrid', annual_fuel_cost: 650, tco_3yr_low: 15650, tco_3yr_high: 21650, founder_credibility_score: 3, reliability_score: 9, depreciation_3yr_percent: 25},
-                {make: 'Lexus', model: 'ES Hybrid', price_range_low: 25000, price_range_high: 35000, category: 'Luxury Hybrid', fuel_type: 'Hybrid', annual_fuel_cost: 700, tco_3yr_low: 18200, tco_3yr_high: 25200, founder_credibility_score: 5, reliability_score: 9, depreciation_3yr_percent: 28},
-                {make: 'Lexus', model: 'NX Hybrid', price_range_low: 28000, price_range_high: 38000, category: 'Luxury Hybrid SUV', fuel_type: 'Hybrid', annual_fuel_cost: 750, tco_3yr_low: 20500, tco_3yr_high: 27500, founder_credibility_score: 5, reliability_score: 9, depreciation_3yr_percent: 26},
+                {make: 'Toyota', model: 'RAV4 Hybrid', price_range_low: 26500, price_range_high: 33700, category: 'Hybrid SUV', fuel_type: 'Hybrid', annual_fuel_cost: 800, tco_3yr_low: 18450, tco_3yr_high: 23550, style_score: 2, reliability_score: 9, depreciation_3yr_percent: 19},
+                {make: 'Toyota', model: 'Camry Hybrid', price_range_low: 23000, price_range_high: 30000, category: 'Hybrid Sedan', fuel_type: 'Hybrid', annual_fuel_cost: 600, tco_3yr_low: 16000, tco_3yr_high: 22200, style_score: 2, reliability_score: 9, depreciation_3yr_percent: 22},
+                {make: 'Honda', model: 'CR-V Hybrid', price_range_low: 25000, price_range_high: 32000, category: 'Hybrid SUV', fuel_type: 'Hybrid', annual_fuel_cost: 850, tco_3yr_low: 18350, tco_3yr_high: 24350, style_score: 3, reliability_score: 8, depreciation_3yr_percent: 24},
+                {make: 'Honda', model: 'Accord Hybrid', price_range_low: 22000, price_range_high: 29000, category: 'Hybrid Sedan', fuel_type: 'Hybrid', annual_fuel_cost: 650, tco_3yr_low: 15650, tco_3yr_high: 21650, style_score: 3, reliability_score: 9, depreciation_3yr_percent: 25},
+                {make: 'Lexus', model: 'ES Hybrid', price_range_low: 25000, price_range_high: 35000, category: 'Luxury Hybrid', fuel_type: 'Hybrid', annual_fuel_cost: 700, tco_3yr_low: 18200, tco_3yr_high: 25200, style_score: 5, reliability_score: 9, depreciation_3yr_percent: 28},
+                {make: 'Lexus', model: 'NX Hybrid', price_range_low: 28000, price_range_high: 38000, category: 'Luxury Hybrid SUV', fuel_type: 'Hybrid', annual_fuel_cost: 750, tco_3yr_low: 20500, tco_3yr_high: 27500, style_score: 5, reliability_score: 9, depreciation_3yr_percent: 26},
                 
                 // German Luxury Gas
-                {make: 'BMW', model: '330i', price_range_low: 20000, price_range_high: 32000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 16100, tco_3yr_high: 24600, founder_credibility_score: 6, reliability_score: 7, depreciation_3yr_percent: 35},
-                {make: 'BMW', model: 'M240i', price_range_low: 30000, price_range_high: 42000, category: 'Sports Luxury', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 22300, tco_3yr_high: 30900, founder_credibility_score: 7, reliability_score: 7, depreciation_3yr_percent: 30},
-                {make: 'BMW', model: 'X3', price_range_low: 28000, price_range_high: 40000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1350, tco_3yr_low: 21200, tco_3yr_high: 29200, founder_credibility_score: 6, reliability_score: 7, depreciation_3yr_percent: 32},
-                {make: 'Audi', model: 'A4', price_range_low: 22000, price_range_high: 32000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 17700, tco_3yr_high: 25700, founder_credibility_score: 6, reliability_score: 7, depreciation_3yr_percent: 30},
-                {make: 'Audi', model: 'Q5', price_range_low: 28000, price_range_high: 40000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 21100, tco_3yr_high: 29100, founder_credibility_score: 6, reliability_score: 7, depreciation_3yr_percent: 33},
-                {make: 'Mercedes', model: 'C300', price_range_low: 25000, price_range_high: 35000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 20300, tco_3yr_high: 28300, founder_credibility_score: 6, reliability_score: 6, depreciation_3yr_percent: 32},
+                {make: 'BMW', model: '330i', price_range_low: 20000, price_range_high: 32000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 16100, tco_3yr_high: 24600, style_score: 6, reliability_score: 7, depreciation_3yr_percent: 35},
+                {make: 'BMW', model: 'M240i', price_range_low: 30000, price_range_high: 42000, category: 'Sports Luxury', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 22300, tco_3yr_high: 30900, style_score: 7, reliability_score: 7, depreciation_3yr_percent: 30},
+                {make: 'BMW', model: 'X3', price_range_low: 28000, price_range_high: 40000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1350, tco_3yr_low: 21200, tco_3yr_high: 29200, style_score: 6, reliability_score: 7, depreciation_3yr_percent: 32},
+                {make: 'Audi', model: 'A4', price_range_low: 22000, price_range_high: 32000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 17700, tco_3yr_high: 25700, style_score: 6, reliability_score: 7, depreciation_3yr_percent: 30},
+                {make: 'Audi', model: 'Q5', price_range_low: 28000, price_range_high: 40000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 21100, tco_3yr_high: 29100, style_score: 6, reliability_score: 7, depreciation_3yr_percent: 33},
+                {make: 'Mercedes', model: 'C300', price_range_low: 25000, price_range_high: 35000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 20300, tco_3yr_high: 28300, style_score: 6, reliability_score: 6, depreciation_3yr_percent: 32},
                 
                 // Korean Luxury
-                {make: 'Genesis', model: 'G70', price_range_low: 19000, price_range_high: 28000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 13700, tco_3yr_high: 19900, founder_credibility_score: 5, reliability_score: 8, depreciation_3yr_percent: 44},
-                {make: 'Genesis', model: 'G80', price_range_low: 28000, price_range_high: 42000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 19700, tco_3yr_high: 28750, founder_credibility_score: 5, reliability_score: 8, depreciation_3yr_percent: 40},
-                {make: 'Genesis', model: 'GV70', price_range_low: 32000, price_range_high: 45000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 24200, tco_3yr_high: 32400, founder_credibility_score: 5, reliability_score: 8, depreciation_3yr_percent: 35},
+                {make: 'Genesis', model: 'G70', price_range_low: 19000, price_range_high: 28000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 13700, tco_3yr_high: 19900, style_score: 5, reliability_score: 8, depreciation_3yr_percent: 44},
+                {make: 'Genesis', model: 'G80', price_range_low: 28000, price_range_high: 42000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 19700, tco_3yr_high: 28750, style_score: 5, reliability_score: 8, depreciation_3yr_percent: 40},
+                {make: 'Genesis', model: 'GV70', price_range_low: 32000, price_range_high: 45000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 24200, tco_3yr_high: 32400, style_score: 5, reliability_score: 8, depreciation_3yr_percent: 35},
                 
                 // Sports Cars
-                {make: 'Porsche', model: 'Cayman', price_range_low: 35000, price_range_high: 55000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 27200, tco_3yr_high: 39700, founder_credibility_score: 8, reliability_score: 9, depreciation_3yr_percent: 20},
-                {make: 'Porsche', model: 'Boxster', price_range_low: 30000, price_range_high: 50000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 24700, tco_3yr_high: 35700, founder_credibility_score: 8, reliability_score: 9, depreciation_3yr_percent: 22},
-                {make: 'Toyota', model: 'GR86', price_range_low: 25000, price_range_high: 32000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 19700, tco_3yr_high: 25200, founder_credibility_score: 4, reliability_score: 8, depreciation_3yr_percent: 25},
-                {make: 'Mazda', model: 'MX-5 Miata', price_range_low: 18000, price_range_high: 28000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 15500, tco_3yr_high: 22500, founder_credibility_score: 4, reliability_score: 8, depreciation_3yr_percent: 28},
-                {make: 'BMW', model: 'M2', price_range_low: 40000, price_range_high: 55000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1700, tco_3yr_low: 30200, tco_3yr_high: 40200, founder_credibility_score: 8, reliability_score: 7, depreciation_3yr_percent: 25},
+                {make: 'Porsche', model: 'Cayman', price_range_low: 35000, price_range_high: 55000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 27200, tco_3yr_high: 39700, style_score: 8, reliability_score: 9, depreciation_3yr_percent: 20},
+                {make: 'Porsche', model: 'Boxster', price_range_low: 30000, price_range_high: 50000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 24700, tco_3yr_high: 35700, style_score: 8, reliability_score: 9, depreciation_3yr_percent: 22},
+                {make: 'Toyota', model: 'GR86', price_range_low: 25000, price_range_high: 32000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 19700, tco_3yr_high: 25200, style_score: 4, reliability_score: 8, depreciation_3yr_percent: 25},
+                {make: 'Mazda', model: 'MX-5 Miata', price_range_low: 18000, price_range_high: 28000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 15500, tco_3yr_high: 22500, style_score: 4, reliability_score: 8, depreciation_3yr_percent: 28},
+                {make: 'BMW', model: 'M2', price_range_low: 40000, price_range_high: 55000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1700, tco_3yr_low: 30200, tco_3yr_high: 40200, style_score: 8, reliability_score: 7, depreciation_3yr_percent: 25},
                 
                 // Japanese Luxury
-                {make: 'Lexus', model: 'IS', price_range_low: 22000, price_range_high: 32000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 16900, tco_3yr_high: 24400, founder_credibility_score: 4, reliability_score: 9, depreciation_3yr_percent: 25},
-                {make: 'Acura', model: 'TLX', price_range_low: 20000, price_range_high: 30000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 16100, tco_3yr_high: 23600, founder_credibility_score: 3, reliability_score: 8, depreciation_3yr_percent: 30},
-                {make: 'Acura', model: 'RDX', price_range_low: 25000, price_range_high: 35000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 19450, tco_3yr_high: 26950, founder_credibility_score: 3, reliability_score: 8, depreciation_3yr_percent: 28},
-                {make: 'Infiniti', model: 'Q50', price_range_low: 18000, price_range_high: 28000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1550, tco_3yr_low: 15550, tco_3yr_high: 22550, founder_credibility_score: 3, reliability_score: 6, depreciation_3yr_percent: 35},
+                {make: 'Lexus', model: 'IS', price_range_low: 22000, price_range_high: 32000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 16900, tco_3yr_high: 24400, style_score: 4, reliability_score: 9, depreciation_3yr_percent: 25},
+                {make: 'Acura', model: 'TLX', price_range_low: 20000, price_range_high: 30000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1400, tco_3yr_low: 16100, tco_3yr_high: 23600, style_score: 3, reliability_score: 8, depreciation_3yr_percent: 30},
+                {make: 'Acura', model: 'RDX', price_range_low: 25000, price_range_high: 35000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 19450, tco_3yr_high: 26950, style_score: 3, reliability_score: 8, depreciation_3yr_percent: 28},
+                {make: 'Infiniti', model: 'Q50', price_range_low: 18000, price_range_high: 28000, category: 'Luxury Sedan', fuel_type: 'Gas', annual_fuel_cost: 1550, tco_3yr_low: 15550, tco_3yr_high: 22550, style_score: 3, reliability_score: 6, depreciation_3yr_percent: 35},
                 
                 // Regular Gas Cars
-                {make: 'Honda', model: 'Civic', price_range_low: 15000, price_range_high: 25000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1000, tco_3yr_low: 12200, tco_3yr_high: 19200, founder_credibility_score: 1, reliability_score: 9, depreciation_3yr_percent: 28},
-                {make: 'Toyota', model: 'Corolla', price_range_low: 14000, price_range_high: 22000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 950, tco_3yr_low: 11500, tco_3yr_high: 17500, founder_credibility_score: 1, reliability_score: 9, depreciation_3yr_percent: 26},
-                {make: 'Mazda', model: 'CX-5', price_range_low: 18000, price_range_high: 28000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 14700, tco_3yr_high: 22700, founder_credibility_score: 2, reliability_score: 8, depreciation_3yr_percent: 30},
-                {make: 'Subaru', model: 'Outback', price_range_low: 22000, price_range_high: 32000, category: 'SUV Wagon', fuel_type: 'Gas', annual_fuel_cost: 1250, tco_3yr_low: 17200, tco_3yr_high: 25200, founder_credibility_score: 2, reliability_score: 8, depreciation_3yr_percent: 28},
+                {make: 'Honda', model: 'Civic', price_range_low: 15000, price_range_high: 25000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1000, tco_3yr_low: 12200, tco_3yr_high: 19200, style_score: 1, reliability_score: 9, depreciation_3yr_percent: 28},
+                {make: 'Toyota', model: 'Corolla', price_range_low: 14000, price_range_high: 22000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 950, tco_3yr_low: 11500, tco_3yr_high: 17500, style_score: 1, reliability_score: 9, depreciation_3yr_percent: 26},
+                {make: 'Mazda', model: 'CX-5', price_range_low: 18000, price_range_high: 28000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 14700, tco_3yr_high: 22700, style_score: 2, reliability_score: 8, depreciation_3yr_percent: 30},
+                {make: 'Subaru', model: 'Outback', price_range_low: 22000, price_range_high: 32000, category: 'SUV Wagon', fuel_type: 'Gas', annual_fuel_cost: 1250, tco_3yr_low: 17200, tco_3yr_high: 25200, style_score: 2, reliability_score: 8, depreciation_3yr_percent: 28},
                 
                 // More Budget Options
-                {make: 'Mitsubishi', model: 'Outlander', price_range_low: 16000, price_range_high: 26000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 14200, tco_3yr_high: 22200, founder_credibility_score: 1, reliability_score: 6, depreciation_3yr_percent: 40},
-                {make: 'Nissan', model: 'Sentra', price_range_low: 12000, price_range_high: 20000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1050, tco_3yr_low: 10800, tco_3yr_high: 17800, founder_credibility_score: 1, reliability_score: 7, depreciation_3yr_percent: 35},
-                {make: 'Hyundai', model: 'Elantra', price_range_low: 13000, price_range_high: 21000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1000, tco_3yr_low: 11400, tco_3yr_high: 18400, founder_credibility_score: 1, reliability_score: 7, depreciation_3yr_percent: 38},
-                {make: 'Kia', model: 'Forte', price_range_low: 12500, price_range_high: 20500, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1020, tco_3yr_low: 11200, tco_3yr_high: 18200, founder_credibility_score: 1, reliability_score: 7, depreciation_3yr_percent: 36},
-                {make: 'Chevrolet', model: 'Malibu', price_range_low: 14000, price_range_high: 22000, category: 'Midsize Sedan', fuel_type: 'Gas', annual_fuel_cost: 1100, tco_3yr_low: 12500, tco_3yr_high: 19500, founder_credibility_score: 1, reliability_score: 6, depreciation_3yr_percent: 42},
+                {make: 'Mitsubishi', model: 'Outlander', price_range_low: 16000, price_range_high: 26000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 14200, tco_3yr_high: 22200, style_score: 1, reliability_score: 6, depreciation_3yr_percent: 40},
+                {make: 'Nissan', model: 'Sentra', price_range_low: 12000, price_range_high: 20000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1050, tco_3yr_low: 10800, tco_3yr_high: 17800, style_score: 1, reliability_score: 7, depreciation_3yr_percent: 35},
+                {make: 'Hyundai', model: 'Elantra', price_range_low: 13000, price_range_high: 21000, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1000, tco_3yr_low: 11400, tco_3yr_high: 18400, style_score: 1, reliability_score: 7, depreciation_3yr_percent: 38},
+                {make: 'Kia', model: 'Forte', price_range_low: 12500, price_range_high: 20500, category: 'Compact Sedan', fuel_type: 'Gas', annual_fuel_cost: 1020, tco_3yr_low: 11200, tco_3yr_high: 18200, style_score: 1, reliability_score: 7, depreciation_3yr_percent: 36},
+                {make: 'Chevrolet', model: 'Malibu', price_range_low: 14000, price_range_high: 22000, category: 'Midsize Sedan', fuel_type: 'Gas', annual_fuel_cost: 1100, tco_3yr_low: 12500, tco_3yr_high: 19500, style_score: 1, reliability_score: 6, depreciation_3yr_percent: 42},
                 
                 // More SUVs
-                {make: 'Ford', model: 'Escape', price_range_low: 16000, price_range_high: 26000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1250, tco_3yr_low: 14300, tco_3yr_high: 22300, founder_credibility_score: 2, reliability_score: 6, depreciation_3yr_percent: 40},
-                {make: 'Chevrolet', model: 'Equinox', price_range_low: 15000, price_range_high: 25000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1280, tco_3yr_low: 13800, tco_3yr_high: 21800, founder_credibility_score: 1, reliability_score: 6, depreciation_3yr_percent: 43},
-                {make: 'Jeep', model: 'Compass', price_range_low: 16000, price_range_high: 26000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1320, tco_3yr_low: 14400, tco_3yr_high: 22400, founder_credibility_score: 2, reliability_score: 5, depreciation_3yr_percent: 45},
-                {make: 'Subaru', model: 'Forester', price_range_low: 20000, price_range_high: 30000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 16200, tco_3yr_high: 24200, founder_credibility_score: 2, reliability_score: 8, depreciation_3yr_percent: 30},
-                {make: 'Honda', model: 'Pilot', price_range_low: 28000, price_range_high: 38000, category: 'Midsize SUV', fuel_type: 'Gas', annual_fuel_cost: 1450, tco_3yr_low: 22200, tco_3yr_high: 30200, founder_credibility_score: 3, reliability_score: 8, depreciation_3yr_percent: 32},
+                {make: 'Ford', model: 'Escape', price_range_low: 16000, price_range_high: 26000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1250, tco_3yr_low: 14300, tco_3yr_high: 22300, style_score: 2, reliability_score: 6, depreciation_3yr_percent: 40},
+                {make: 'Chevrolet', model: 'Equinox', price_range_low: 15000, price_range_high: 25000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1280, tco_3yr_low: 13800, tco_3yr_high: 21800, style_score: 1, reliability_score: 6, depreciation_3yr_percent: 43},
+                {make: 'Jeep', model: 'Compass', price_range_low: 16000, price_range_high: 26000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1320, tco_3yr_low: 14400, tco_3yr_high: 22400, style_score: 2, reliability_score: 5, depreciation_3yr_percent: 45},
+                {make: 'Subaru', model: 'Forester', price_range_low: 20000, price_range_high: 30000, category: 'Compact SUV', fuel_type: 'Gas', annual_fuel_cost: 1200, tco_3yr_low: 16200, tco_3yr_high: 24200, style_score: 2, reliability_score: 8, depreciation_3yr_percent: 30},
+                {make: 'Honda', model: 'Pilot', price_range_low: 28000, price_range_high: 38000, category: 'Midsize SUV', fuel_type: 'Gas', annual_fuel_cost: 1450, tco_3yr_low: 22200, tco_3yr_high: 30200, style_score: 3, reliability_score: 8, depreciation_3yr_percent: 32},
                 
                 // Trucks
-                {make: 'Toyota', model: 'Tacoma', price_range_low: 25000, price_range_high: 35000, category: 'Pickup Truck', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 20500, tco_3yr_high: 28500, founder_credibility_score: 3, reliability_score: 8, depreciation_3yr_percent: 25},
-                {make: 'Ford', model: 'F-150', price_range_low: 22000, price_range_high: 45000, category: 'Pickup Truck', fuel_type: 'Gas', annual_fuel_cost: 1800, tco_3yr_low: 19800, tco_3yr_high: 36800, founder_credibility_score: 3, reliability_score: 7, depreciation_3yr_percent: 38},
-                {make: 'Chevrolet', model: 'Silverado', price_range_low: 20000, price_range_high: 42000, category: 'Pickup Truck', fuel_type: 'Gas', annual_fuel_cost: 1850, tco_3yr_low: 19200, tco_3yr_high: 35200, founder_credibility_score: 2, reliability_score: 6, depreciation_3yr_percent: 40},
+                {make: 'Toyota', model: 'Tacoma', price_range_low: 25000, price_range_high: 35000, category: 'Pickup Truck', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 20500, tco_3yr_high: 28500, style_score: 3, reliability_score: 8, depreciation_3yr_percent: 25},
+                {make: 'Ford', model: 'F-150', price_range_low: 22000, price_range_high: 45000, category: 'Pickup Truck', fuel_type: 'Gas', annual_fuel_cost: 1800, tco_3yr_low: 19800, tco_3yr_high: 36800, style_score: 3, reliability_score: 7, depreciation_3yr_percent: 38},
+                {make: 'Chevrolet', model: 'Silverado', price_range_low: 20000, price_range_high: 42000, category: 'Pickup Truck', fuel_type: 'Gas', annual_fuel_cost: 1850, tco_3yr_low: 19200, tco_3yr_high: 35200, style_score: 2, reliability_score: 6, depreciation_3yr_percent: 40},
                 
                 // More Luxury Options
-                {make: 'Volvo', model: 'XC40', price_range_low: 24000, price_range_high: 34000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 19200, tco_3yr_high: 27200, founder_credibility_score: 5, reliability_score: 7, depreciation_3yr_percent: 35},
-                {make: 'Cadillac', model: 'XT4', price_range_low: 22000, price_range_high: 32000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1350, tco_3yr_low: 18500, tco_3yr_high: 26500, founder_credibility_score: 4, reliability_score: 5, depreciation_3yr_percent: 45},
-                {make: 'Lincoln', model: 'Corsair', price_range_low: 24000, price_range_high: 34000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1320, tco_3yr_low: 19100, tco_3yr_high: 27100, founder_credibility_score: 4, reliability_score: 6, depreciation_3yr_percent: 42},
+                {make: 'Volvo', model: 'XC40', price_range_low: 24000, price_range_high: 34000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1300, tco_3yr_low: 19200, tco_3yr_high: 27200, style_score: 5, reliability_score: 7, depreciation_3yr_percent: 35},
+                {make: 'Cadillac', model: 'XT4', price_range_low: 22000, price_range_high: 32000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1350, tco_3yr_low: 18500, tco_3yr_high: 26500, style_score: 4, reliability_score: 5, depreciation_3yr_percent: 45},
+                {make: 'Lincoln', model: 'Corsair', price_range_low: 24000, price_range_high: 34000, category: 'Luxury SUV', fuel_type: 'Gas', annual_fuel_cost: 1320, tco_3yr_low: 19100, tco_3yr_high: 27100, style_score: 4, reliability_score: 6, depreciation_3yr_percent: 42},
                 
                 // More EVs
-                {make: 'Volkswagen', model: 'ID.4', price_range_low: 25000, price_range_high: 35000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 17200, tco_3yr_high: 24200, founder_credibility_score: 4, reliability_score: 6, depreciation_3yr_percent: 45},
-                {make: 'Ford', model: 'Mustang Mach-E', price_range_low: 32000, price_range_high: 48000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 21500, tco_3yr_high: 32500, founder_credibility_score: 6, reliability_score: 6, depreciation_3yr_percent: 40},
-                {make: 'Polestar', model: '2', price_range_low: 30000, price_range_high: 42000, category: 'EV Sedan', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 19800, tco_3yr_high: 28800, founder_credibility_score: 6, reliability_score: 7, depreciation_3yr_percent: 38},
+                {make: 'Volkswagen', model: 'ID.4', price_range_low: 25000, price_range_high: 35000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 17200, tco_3yr_high: 24200, style_score: 4, reliability_score: 6, depreciation_3yr_percent: 45},
+                {make: 'Ford', model: 'Mustang Mach-E', price_range_low: 32000, price_range_high: 48000, category: 'EV SUV', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 21500, tco_3yr_high: 32500, style_score: 6, reliability_score: 6, depreciation_3yr_percent: 40},
+                {make: 'Polestar', model: '2', price_range_low: 30000, price_range_high: 42000, category: 'EV Sedan', fuel_type: 'Electric', annual_fuel_cost: 275, tco_3yr_low: 19800, tco_3yr_high: 28800, style_score: 6, reliability_score: 7, depreciation_3yr_percent: 38},
                 
                 // Performance Cars
-                {make: 'Ford', model: 'Mustang GT', price_range_low: 28000, price_range_high: 38000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1700, tco_3yr_low: 22400, tco_3yr_high: 30400, founder_credibility_score: 5, reliability_score: 7, depreciation_3yr_percent: 32},
-                {make: 'Chevrolet', model: 'Camaro', price_range_low: 25000, price_range_high: 40000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1650, tco_3yr_low: 20800, tco_3yr_high: 32800, founder_credibility_score: 5, reliability_score: 6, depreciation_3yr_percent: 38},
-                {make: 'Dodge', model: 'Charger', price_range_low: 22000, price_range_high: 35000, category: 'Sports Sedan', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 18600, tco_3yr_high: 28600, founder_credibility_score: 4, reliability_score: 6, depreciation_3yr_percent: 40},
-                {make: 'Subaru', model: 'WRX', price_range_low: 24000, price_range_high: 32000, category: 'Sports Sedan', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 19200, tco_3yr_high: 25200, founder_credibility_score: 5, reliability_score: 7, depreciation_3yr_percent: 28}
+                {make: 'Ford', model: 'Mustang GT', price_range_low: 28000, price_range_high: 38000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1700, tco_3yr_low: 22400, tco_3yr_high: 30400, style_score: 5, reliability_score: 7, depreciation_3yr_percent: 32},
+                {make: 'Chevrolet', model: 'Camaro', price_range_low: 25000, price_range_high: 40000, category: 'Sports Car', fuel_type: 'Gas', annual_fuel_cost: 1650, tco_3yr_low: 20800, tco_3yr_high: 32800, style_score: 5, reliability_score: 6, depreciation_3yr_percent: 38},
+                {make: 'Dodge', model: 'Charger', price_range_low: 22000, price_range_high: 35000, category: 'Sports Sedan', fuel_type: 'Gas', annual_fuel_cost: 1600, tco_3yr_low: 18600, tco_3yr_high: 28600, style_score: 4, reliability_score: 6, depreciation_3yr_percent: 40},
+                {make: 'Subaru', model: 'WRX', price_range_low: 24000, price_range_high: 32000, category: 'Sports Sedan', fuel_type: 'Gas', annual_fuel_cost: 1500, tco_3yr_low: 19200, tco_3yr_high: 25200, style_score: 5, reliability_score: 7, depreciation_3yr_percent: 28}
             ];
             
             maintenanceData = [
@@ -773,7 +773,7 @@
             document.getElementById('bestValue').textContent = `${bestValue.make} ${bestValue.model}`;
             
             const topCredibility = filtered.reduce((best, car) => 
-                car.founder_credibility_score > best.founder_credibility_score ? car : best
+                car.style_score > best.style_score ? car : best
             );
             document.getElementById('topCredibility').textContent = `${topCredibility.make} ${topCredibility.model}`;
         }
@@ -831,7 +831,7 @@
             // Credibility filter
             const credibilityFilter = document.getElementById('credibilityFilter')?.value;
             if (credibilityFilter) {
-                filtered = filtered.filter(car => car.founder_credibility_score >= parseInt(credibilityFilter));
+                filtered = filtered.filter(car => car.style_score >= parseInt(credibilityFilter));
             }
             
             // Reliability filter
@@ -1129,7 +1129,7 @@
                 x: car.reliability_score,
                 y: (car.tco_3yr_low + car.tco_3yr_high) / 2,
                 label: `${car.make} ${car.model}`,
-                credibility: car.founder_credibility_score,
+                credibility: car.style_score,
                 backgroundColor: colorSchemes.categories[car.category] || colorSchemes.primary[0]
             }));
             
@@ -1276,7 +1276,7 @@
             
             const labels = Object.keys(categories);
             const tcoData = labels.map(cat => categories[cat].avgTCO);
-            const credibilityData = labels.map(cat => categories[cat].founder_credibility_score);
+            const credibilityData = labels.map(cat => categories[cat].style_score);
             
             charts.category = new Chart(ctx, {
                 type: 'bar',
@@ -1468,14 +1468,14 @@
             
             // Best overall value (TCO vs credibility)
             const bestOverall = filtered.reduce((best, car) => {
-                const carScore = car.founder_credibility_score / ((car.tco_3yr_low + car.tco_3yr_high) / 2) * 10000;
-                const bestScore = best.founder_credibility_score / ((best.tco_3yr_low + best.tco_3yr_high) / 2) * 10000;
+                const carScore = car.style_score / ((car.tco_3yr_low + car.tco_3yr_high) / 2) * 10000;
+                const bestScore = best.style_score / ((best.tco_3yr_low + best.tco_3yr_high) / 2) * 10000;
                 return carScore > bestScore ? car : best;
             });
             document.getElementById('bestOverall').innerHTML = `
                 <strong>${bestOverall.make} ${bestOverall.model}</strong><br>
                 TCO: $${Math.round((bestOverall.tco_3yr_low + bestOverall.tco_3yr_high) / 2).toLocaleString()}<br>
-                Credibility: ${bestOverall.founder_credibility_score}/10
+                Credibility: ${bestOverall.style_score}/10
             `;
             
             // Best reliability
@@ -1497,16 +1497,16 @@
             document.getElementById('bestBudget').innerHTML = `
                 <strong>${bestBudget.make} ${bestBudget.model}</strong><br>
                 TCO: $${Math.round((bestBudget.tco_3yr_low + bestBudget.tco_3yr_high) / 2).toLocaleString()}<br>
-                Credibility: ${bestBudget.founder_credibility_score}/10
+                Credibility: ${bestBudget.style_score}/10
             `;
             
             // Best cool factor (founder credibility)
             const bestCoolFactor = filtered.reduce((best, car) => 
-                car.founder_credibility_score > best.founder_credibility_score ? car : best
+                car.style_score > best.style_score ? car : best
             );
             document.getElementById('bestPerformance').innerHTML = `
                 <strong>${bestCoolFactor.make} ${bestCoolFactor.model}</strong><br>
-                Cool Factor: ${bestCoolFactor.founder_credibility_score}/10<br>
+                Cool Factor: ${bestCoolFactor.style_score}/10<br>
                 Reliability: ${bestCoolFactor.reliability_score}/10<br>
                 TCO: $${Math.round((bestCoolFactor.tco_3yr_low + bestCoolFactor.tco_3yr_high) / 2).toLocaleString()}
             `;
