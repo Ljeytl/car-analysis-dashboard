@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Comprehensive 3-Year TCO Analysis Dashboard for 59 cars with NEW vs USED comparison using real KBB & Edmunds data">
+    <meta name="keywords" content="car analysis, TCO, total cost ownership, car buying, depreciation, automotive">
+    <title>Ultimate Car Analysis Dashboard - 3-Year TCO Comparison</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Our Stylesheets -->
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Ultimate Car Analysis Dashboard</h1>
+        <p class="subtitle">
+            Comprehensive 3-Year TCO Analysis for Founders & Young Professionals
+            <span class="live-indicator"></span>
+            <span class="warning-text">Live Data: Updated with KBB prices & real-world depreciation</span>
+        </p>
+
+        <!-- Filters Section -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="makeFilter">Make</label>
+                <select id="makeFilter">
+                    <option value="">All Makes</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="typeFilter">Type</label>
+                <select id="typeFilter">
+                    <option value="">All Types</option>
+                    <option value="Sedan">Sedan</option>
+                    <option value="SUV">SUV</option>
+                    <option value="Hatchback">Hatchback</option>
+                    <option value="Coupe">Coupe</option>
+                    <option value="Convertible">Convertible</option>
+                    <option value="Wagon">Wagon</option>
+                    <option value="Truck">Truck</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="fuelFilter">Fuel Type</label>
+                <select id="fuelFilter">
+                    <option value="">All Fuel Types</option>
+                    <option value="Gasoline">Gasoline</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Plug-in Hybrid">Plug-in Hybrid</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="priceFilter">Price Range</label>
+                <select id="priceFilter">
+                    <option value="">All Prices</option>
+                    <option value="0-20000">Under $20k</option>
+                    <option value="20000-35000">$20k - $35k</option>
+                    <option value="35000-50000">$35k - $50k</option>
+                    <option value="50000-100000">$50k+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button class="refresh-btn" onclick="refreshData()">
+                    🔄 Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCars">131</div>
+                <div class="stat-label">Total Cars</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgPrice">$32,450</div>
+                <div class="stat-label">Average Price</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgTCO">$18,200</div>
+                <div class="stat-label">Avg 3-Year TCO</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="bestValue">RAV4 Hybrid</div>
+                <div class="stat-label">Best Value</div>
+            </div>
+        </div>
+
+        <!-- NEW vs USED Comparison Section -->
+        <div class="comparison-section">
+            <h2 class="comparison-title">🔥 NEW vs USED Strategy Analysis</h2>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h3 class="comparison-card-title">📈 NEW Car Strategy</h3>
+                    <div class="comparison-details">
+                        <div><strong>Pros:</strong></div>
+                        <div>• Latest tech & safety<br>• Full warranty coverage<br>• Known history</div>
+                        <div><strong>Cons:</strong></div>
+                        <div>• Massive depreciation hit<br>• Higher insurance costs<br>• Opportunity cost</div>
+                    </div>
+                    <div class="savings-highlight">Total Premium: +$15,000-25,000 over 3 years</div>
+                </div>
+                <div class="comparison-card">
+                    <h3 class="comparison-card-title">💡 USED Car Strategy (2-3 years old)</h3>
+                    <div class="comparison-details">
+                        <div><strong>Pros:</strong></div>
+                        <div>• Someone else ate depreciation<br>• Lower insurance<br>• Better value retention</div>
+                        <div><strong>Cons:</strong></div>
+                        <div>• Potential maintenance<br>• Limited warranty<br>• Unknown usage</div>
+                    </div>
+                    <div class="savings-highlight">Savings: $15,000-25,000 over 3 years</div>
+                </div>
+            </div>
+            <div class="strategy-tip">
+                💰 <strong>Smart Move:</strong> Buy 2-3 year old luxury cars for 60-70% of new price with 90% of the features
+            </div>
+        </div>
+
+        <!-- Personalized Recommendations Section -->
+        <div class="recommendations-section">
+            <h2 class="section-title">🎯 Personalized Recommendations</h2>
+            
+            <!-- Preference Controls -->
+            <div class="tco-controls">
+                <div class="tco-control-group">
+                    <label>Cost Priority (Lower Price = Better)</label>
+                    <div class="slider-container">
+                        <input type="range" id="costWeight" min="0" max="1" step="0.1" value="0.3">
+                        <span id="costWeightValue">0.3</span>
+                    </div>
+                </div>
+                <div class="tco-control-group">
+                    <label>TCO Priority (Lower Total Cost = Better)</label>
+                    <div class="slider-container">
+                        <input type="range" id="tcoWeight" min="0" max="1" step="0.1" value="0.4">
+                        <span id="tcoWeightValue">0.4</span>
+                    </div>
+                </div>
+                <div class="tco-control-group">
+                    <label>Reliability Priority</label>
+                    <div class="slider-container">
+                        <input type="range" id="reliabilityWeight" min="0" max="1" step="0.1" value="0.2">
+                        <span id="reliabilityWeightValue">0.2</span>
+                    </div>
+                </div>
+                <div class="tco-control-group">
+                    <label>Style/Coolness Priority</label>
+                    <div class="slider-container">
+                        <input type="range" id="styleWeight" min="0" max="1" step="0.1" value="0.1">
+                        <span id="styleWeightValue">0.1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Recommendations List -->
+            <div class="recommendations-grid">
+                <div id="recommendationsList">
+                    <p style="text-align: center; opacity: 0.7;">Loading recommendations...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- Price Distribution Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">💰 Price Distribution Analysis</h3>
+                <div class="chart-canvas">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- TCO Comparison Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">📊 3-Year Total Cost of Ownership</h3>
+                <div class="chart-canvas">
+                    <canvas id="tcoChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Make Distribution Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">🏭 Distribution by Make</h3>
+                <div class="chart-canvas">
+                    <canvas id="makeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Fuel Type Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">⛽ Fuel Type Distribution</h3>
+                <div class="chart-canvas">
+                    <canvas id="fuelChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Depreciation Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">📉 3-Year Depreciation Analysis</h3>
+                <div class="chart-canvas">
+                    <canvas id="depreciationChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Reliability vs Price Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">🔧 Reliability vs Price Analysis</h3>
+                <div class="chart-canvas">
+                    <canvas id="reliabilityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- MPG vs Price Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">⛽ Fuel Economy vs Price</h3>
+                <div class="chart-canvas">
+                    <canvas id="mpgChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Safety vs Price Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">🛡️ Safety Rating vs Price</h3>
+                <div class="chart-canvas">
+                    <canvas id="safetyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Insurance Cost Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">🏥 Insurance Cost Analysis</h3>
+                <div class="chart-canvas">
+                    <canvas id="insuranceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Maintenance Cost Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">🔧 5-Year Maintenance Costs</h3>
+                <div class="chart-canvas">
+                    <canvas id="maintenanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- TCO Breakdown Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">📈 TCO Component Breakdown</h3>
+                <div class="chart-canvas">
+                    <canvas id="tcoBreakdownChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Personalized Recommendations Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">🎯 Your Top 10 Recommendations</h3>
+                <div class="chart-canvas">
+                    <canvas id="personalizedChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table Section -->
+        <div class="table-container">
+            <table class="data-table" id="carTable">
+                <thead>
+                    <tr>
+                        <th>Car</th>
+                        <th>Price</th>
+                        <th>3-Year TCO</th>
+                        <th>Reliability</th>
+                        <th>MPG</th>
+                        <th>Safety</th>
+                        <th>Type</th>
+                        <th>Fuel</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="carTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for car details -->
+    <div id="carModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalContent">
+                <!-- Car details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="assets/js/recommendation-engine.js"></script>
+    <script src="assets/js/charts.js"></script>
+    <script src="assets/js/data-loader.js"></script>
+    <script src="assets/js/filters.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

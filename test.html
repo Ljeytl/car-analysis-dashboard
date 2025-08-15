@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CSV Loading</title>
+</head>
+<body>
+    <h1>Testing CSV Load</h1>
+    <div id="status">Loading...</div>
+    <div id="results"></div>
+
+    <script>
+        async function testLoad() {
+            try {
+                const response = await fetch('./comprehensive_car_analysis.csv');
+                const csvText = await response.text();
+                const lines = csvText.trim().split('\n');
+                
+                document.getElementById('status').textContent = `Loaded ${lines.length} lines`;
+                document.getElementById('results').innerHTML = `
+                    <h3>First 3 lines:</h3>
+                    <pre>${lines.slice(0, 3).join('\n')}</pre>
+                    <h3>Camry entries:</h3>
+                    <pre>${lines.filter(line => line.includes('Camry')).join('\n')}</pre>
+                `;
+                
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        testLoad();
+    </script>
+</body>
+</html>

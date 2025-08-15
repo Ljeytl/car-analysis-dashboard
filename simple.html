@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .loading { color: orange; }
+        .loaded { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Simple Car Dashboard Test</h1>
+    <div id="status" class="loading">Loading...</div>
+    <div id="carCount"></div>
+    <div id="camryData"></div>
+    <div id="rav4Data"></div>
+
+    <script>
+        let carData = [];
+        
+        function parseCSVData(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',');
+            const cars = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const car = {};
+                
+                headers.forEach((header, index) => {
+                    car[header.trim()] = values[index] ? values[index].trim().replace(/"/g, '') : '';
+                });
+                
+                cars.push({
+                    name: `${car.make} ${car.model} (${car.year_range})`,
+                    make: car.make,
+                    model: car.model,
+                    price: Math.round((parseInt(car.price_range_low) + parseInt(car.price_range_high)) / 2),
+                    insurance_annual: parseInt(car.insurance_annual),
+                    founder_credibility: parseInt(car.founder_credibility_score || car.coolness_score)
+                });
+            }
+            
+            return cars;
+        }
+        
+        async function loadAndTest() {
+            try {
+                console.log('Starting load...');
+                const response = await fetch('./comprehensive_car_analysis.csv');
+                const csvText = await response.text();
+                carData = parseCSVData(csvText);
+                
+                document.getElementById('status').textContent = `✅ Loaded ${carData.length} cars successfully!`;
+                document.getElementById('status').className = 'loaded';
+                
+                document.getElementById('carCount').innerHTML = `<h3>Total Cars: ${carData.length}</h3>`;
+                
+                // Show Camry data
+                const camryData = carData.filter(car => car.model.includes('Camry'));
+                document.getElementById('camryData').innerHTML = `
+                    <h3>Camry Models (${camryData.length}):</h3>
+                    ${camryData.map(car => 
+                        `<div>• ${car.name} - Insurance: $${car.insurance_annual}/year</div>`
+                    ).join('')}
+                `;
+                
+                // Show RAV4 data
+                const rav4Data = carData.filter(car => car.model.includes('RAV4'));
+                document.getElementById('rav4Data').innerHTML = `
+                    <h3>RAV4 Models (${rav4Data.length}):</h3>
+                    ${rav4Data.map(car => 
+                        `<div>• ${car.name} - Price: $${car.price.toLocaleString()}</div>`
+                    ).join('')}
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('status').textContent = `❌ Error: ${error.message}`;
+                document.getElementById('status').className = 'error';
+            }
+        }
+        
+        loadAndTest();
+    </script>
+</body>
+</html>
