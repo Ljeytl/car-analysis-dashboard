@@ -62,7 +62,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             background: var(--secondary-bg);
             padding: var(--spacing-lg);
@@ -71,6 +71,37 @@
             border: 1px solid var(--border-color);
             position: relative;
             overflow: hidden;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: var(--spacing-lg);
+        }
+
+        .main-content {
+            min-width: 0; /* Prevent grid overflow */
+        }
+
+        .sidebar {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+            position: sticky;
+            top: var(--spacing-lg);
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
+                position: static;
+            }
         }
 
         .container::before {
@@ -212,10 +243,15 @@
         .recommendation-card {
             background: var(--surface-bg);
             border-radius: var(--border-radius-sm);
-            padding: var(--spacing-md);
-            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
             border: 1px solid var(--border-color);
             transition: all var(--transition-normal);
+        }
+        
+        .sidebar .recommendation-card {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
         }
 
         .recommendation-card:hover {
@@ -259,12 +295,22 @@
             color: var(--text-primary);
             margin-bottom: var(--spacing-xs);
         }
+        
+        .sidebar .car-title {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
 
         .car-metrics {
             display: flex;
             gap: var(--spacing-md);
             margin-bottom: var(--spacing-xs);
             flex-wrap: wrap;
+        }
+        
+        .sidebar .car-metrics {
+            gap: var(--spacing-xs);
+            margin-bottom: 4px;
         }
 
         .metric {
@@ -273,6 +319,10 @@
             gap: 4px;
             color: var(--text-secondary);
             font-size: 0.9rem;
+        }
+        
+        .sidebar .metric {
+            font-size: 0.8rem;
         }
 
         .score-badge {
@@ -289,6 +339,10 @@
             color: var(--text-muted);
             font-size: 0.85rem;
             font-style: italic;
+        }
+        
+        .sidebar .recommendation-reason {
+            font-size: 0.75rem;
         }
 
         .chart-container {
@@ -348,9 +402,11 @@
             <span style="font-size: 0.9em; opacity: 0.8;">Complete TCO analysis with smart filtering and priority matching</span>
         </p>
 
-        <!-- Advanced Controls Section -->
-        <div class="section">
-            <h3 class="section-title">🎛️ Advanced Analysis Controls</h3>
+        <div class="main-layout">
+            <div class="main-content">
+                <!-- Advanced Controls Section -->
+                <div class="section">
+                    <h3 class="section-title">🎛️ Advanced Analysis Controls</h3>
             
             <div class="advanced-controls">
                 <div class="control-panel">
@@ -426,7 +482,7 @@
                 </div>
                 
                 <div class="preference-group">
-                    <label for="styleWeight">Style & Image Priority</label>
+                    <label for="styleWeight">Style & Cool Factor Priority</label>
                     <div class="slider-container">
                         <input type="range" id="styleWeight" min="0" max="10" value="2" step="0.5" oninput="updateRecommendations()">
                         <span id="styleWeightValue" class="value-display">2</span>
@@ -443,7 +499,7 @@
 
                 <div class="preference-group">
                     <label for="priorityMode">Priority Profile</label>
-                    <select id="priorityMode" onchange="updateRecommendations()">
+                    <select id="priorityMode" onchange="applyPriorityPreset()">
                         <option value="balanced">Balanced Approach</option>
                         <option value="budget">Budget Conscious</option>
                         <option value="luxury">Quality & Prestige</option>
@@ -454,34 +510,39 @@
             </div>
         </div>
 
-        <!-- Smart Recommendations Section -->
-        <div class="section">
-            <h3 class="section-title">🏆 Smart Recommendations</h3>
-            <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
-                Our AI analyzes your preferences to find the perfect matches:
-            </p>
-            
-            <div class="recommendations-container">
-                <div id="recommendationsList">
-                    <p style="text-align: center; color: var(--text-muted); padding: var(--spacing-xl);">
-                        Analyzing cars based on your preferences...
-                    </p>
+                <!-- Advanced Chart -->
+                <div class="section">
+                    <h3 class="section-title">📊 Match Analysis</h3>
+                    <div class="chart-container">
+                        <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">Top 10 Cars Based on Your Preferences</h4>
+                        <canvas id="personalizedChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics Section -->
+                <div class="section">
+                    <h3 class="section-title">📈 Cost Breakdown Analysis</h3>
+                    <div class="chart-container">
+                        <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">TCO Components by Category</h4>
+                        <canvas id="costBreakdownChart" width="400" height="200"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- Advanced Chart -->
-            <div class="chart-container">
-                <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">Match Analysis - Top 10 Cars</h4>
-                <canvas id="personalizedChart" width="400" height="200"></canvas>
-            </div>
-        </div>
-
-        <!-- Advanced Analytics Section -->
-        <div class="section">
-            <h3 class="section-title">📈 Cost Breakdown Analysis</h3>
-            <div class="chart-container">
-                <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">TCO Components by Category</h4>
-                <canvas id="costBreakdownChart" width="400" height="200"></canvas>
+            <!-- Sidebar Recommendations -->
+            <div class="sidebar">
+                <h3 class="section-title">🏆 Top Recommendations</h3>
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg); font-size: 0.9rem;">
+                    Live updates based on your preferences:
+                </p>
+                
+                <div class="recommendations-container">
+                    <div id="recommendationsList">
+                        <p style="text-align: center; color: var(--text-muted); padding: var(--spacing-lg); font-size: 0.85rem;">
+                            Analyzing cars...
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -666,7 +727,7 @@
         function getAdvancedWeights() {
             const priorityMode = document.getElementById('priorityMode').value;
             
-            // Get base weights from sliders
+            // Get weights directly from sliders (priority mode already sets these)
             let weights = {
                 cost: parseFloat(document.getElementById('costWeight').value),
                 tco: parseFloat(document.getElementById('tcoWeight').value),
@@ -674,30 +735,6 @@
                 style: parseFloat(document.getElementById('styleWeight').value),
                 fuel: parseFloat(document.getElementById('fuelWeight').value)
             };
-            
-            // Adjust weights based on priority mode
-            switch(priorityMode) {
-                case 'budget':
-                    weights.cost *= 1.8;
-                    weights.tco *= 1.5;
-                    weights.style *= 0.5;
-                    break;
-                case 'luxury':
-                    weights.style *= 1.8;
-                    weights.reliability *= 1.3;
-                    weights.cost *= 0.5;
-                    break;
-                case 'efficiency':
-                    weights.fuel *= 1.8;
-                    weights.tco *= 1.4;
-                    weights.style *= 0.7;
-                    break;
-                case 'reliability':
-                    weights.reliability *= 1.8;
-                    weights.tco *= 1.2;
-                    weights.style *= 0.8;
-                    break;
-            }
             
             return weights;
         }
@@ -764,7 +801,7 @@
                         case 'cost': return 'affordable pricing';
                         case 'tco': return 'low total cost';
                         case 'reliability': return 'proven reliability';
-                        case 'style': return 'excellent style';
+                        case 'style': return 'great style';
                         case 'fuel': return 'fuel efficiency';
                         default: return 'overall value';
                     }
@@ -926,6 +963,54 @@
                     }
                 }
             });
+        }
+
+        // Apply priority mode preset to slider values
+        function applyPriorityPreset() {
+            const priorityMode = document.getElementById('priorityMode').value;
+            
+            // Set slider values based on priority mode
+            switch(priorityMode) {
+                case 'budget':
+                    document.getElementById('costWeight').value = '8';
+                    document.getElementById('tcoWeight').value = '9';
+                    document.getElementById('reliabilityWeight').value = '6';
+                    document.getElementById('styleWeight').value = '2';
+                    document.getElementById('fuelWeight').value = '7';
+                    break;
+                case 'luxury':
+                    document.getElementById('costWeight').value = '2';
+                    document.getElementById('tcoWeight').value = '4';
+                    document.getElementById('reliabilityWeight').value = '7';
+                    document.getElementById('styleWeight').value = '9';
+                    document.getElementById('fuelWeight').value = '3';
+                    break;
+                case 'efficiency':
+                    document.getElementById('costWeight').value = '4';
+                    document.getElementById('tcoWeight').value = '8';
+                    document.getElementById('reliabilityWeight').value = '6';
+                    document.getElementById('styleWeight').value = '3';
+                    document.getElementById('fuelWeight').value = '9';
+                    break;
+                case 'reliability':
+                    document.getElementById('costWeight').value = '3';
+                    document.getElementById('tcoWeight').value = '6';
+                    document.getElementById('reliabilityWeight').value = '9';
+                    document.getElementById('styleWeight').value = '4';
+                    document.getElementById('fuelWeight').value = '5';
+                    break;
+                case 'balanced':
+                default:
+                    document.getElementById('costWeight').value = '5';
+                    document.getElementById('tcoWeight').value = '6';
+                    document.getElementById('reliabilityWeight').value = '6';
+                    document.getElementById('styleWeight').value = '4';
+                    document.getElementById('fuelWeight').value = '5';
+                    break;
+            }
+            
+            // Update the recommendations after changing slider values
+            updateRecommendations();
         }
 
         // Initialize when page loads
