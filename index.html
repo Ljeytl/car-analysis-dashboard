@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Comprehensive 3-Year TCO Analysis Dashboard for 131 cars using real KBB & Edmunds data - Perfect for founders and young professionals">
+    <meta name="description" content="Comprehensive 3-Year TCO Analysis Dashboard for 59 cars with NEW vs USED comparison using real KBB & Edmunds data">
     <meta name="keywords" content="car analysis, TCO, total cost ownership, car buying, depreciation, automotive">
     <title>Ultimate Car Analysis Dashboard - 3-Year TCO Comparison</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -578,6 +578,112 @@
             }
         }
 
+        /* NEW VS USED Comparison Section Styles */
+        .comparison-section {
+            background: linear-gradient(135deg, var(--accent-red), #ee5a24);
+            color: white;
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-lg);
+            margin: var(--spacing-xl) 0;
+            box-shadow: 0 15px 40px rgba(238, 90, 36, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .comparison-title {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .comparison-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all var(--transition-normal);
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-card-title {
+            margin-bottom: var(--spacing-md);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .comparison-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .savings-highlight {
+            text-align: center;
+            margin-top: var(--spacing-md);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .strategy-tip {
+            text-align: center;
+            margin-top: var(--spacing-xl);
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-section {
+                padding: var(--spacing-lg);
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+            
+            .comparison-details {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-sm);
+            }
+        }
 
         /* Loading states and animations */
         .loading {
@@ -841,9 +947,26 @@
                     </div>
                 </div>
                 
+                <div class="tco-control-group">
+                    <label for="founderMode">Founder Priority Mode</label>
+                    <select id="founderMode">
+                        <option value="balanced">Balanced (Default)</option>
+                        <option value="bootstrap">Bootstrap Mode (Max Efficiency)</option>
+                        <option value="fundraising">Fundraising Mode (Max Credibility)</option>
+                        <option value="stealth">Stealth Wealth Mode</option>
+                    </select>
+                </div>
             </div>
         </div>
         
+        <!-- Recommendations Section -->
+        <div class="recommendations-section">
+            <h3 class="section-title">🏆 AI-Powered Founder Recommendations</h3>
+            <div id="recommendations-container" class="recommendations-grid">
+                <!-- Recommendations will be populated here -->
+            </div>
+        </div>
+
         <!-- Manual Car Entry Tab -->
         <div class="manual-entry-tab" style="margin: 30px 0;">
             <button id="toggleManualEntry" onclick="toggleManualEntryForm()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; padding: 15px 25px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); transition: all 0.3s ease; width: 100%;">
@@ -1031,12 +1154,28 @@
                     <canvas id="styleTCOChart"></canvas>
                 </div>
             </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">TCO Over Time - Top Cars (3 Year Progression)</h3>
+                <div class="chart-canvas">
+                    <canvas id="tcoTimeChart"></canvas>
+                </div>
+            </div>
         </div>
         
     <!-- Personalized Recommendation Engine -->
     <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; color: white;">
         <h2 style="text-align: center; margin-bottom: 30px; font-size: 2rem;">🎯 Personal Car Recommendation Engine</h2>
         <p style="text-align: center; margin-bottom: 30px; opacity: 0.9;">Tell us what matters most to you, and we'll find your perfect car match!</p>
+        
+        <!-- Category Toggles -->
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+            <label style="cursor: pointer;"><input type="checkbox" id="enableCost" checked onchange="toggleSlider('cost'); updateRecommendations()" style="margin-right: 5px;"> 💰 Price</label>
+            <label style="cursor: pointer;"><input type="checkbox" id="enableTCO" checked onchange="toggleSlider('tco'); updateRecommendations()" style="margin-right: 5px;"> 📊 TCO</label>
+            <label style="cursor: pointer;"><input type="checkbox" id="enableReliability" checked onchange="toggleSlider('reliability'); updateRecommendations()" style="margin-right: 5px;"> 🔧 Reliability</label>
+            <label style="cursor: pointer;"><input type="checkbox" id="enableStyle" checked onchange="toggleSlider('style'); updateRecommendations()" style="margin-right: 5px;"> ✨ Style</label>
+            <label style="cursor: pointer;"><input type="checkbox" id="enableFuel" checked onchange="toggleSlider('fuel'); updateRecommendations()" style="margin-right: 5px;"> ⛽ Fuel</label>
+        </div>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
             <div class="preference-slider">
@@ -1086,12 +1225,14 @@
     </div>
     
     <script>
-        // Global variables
-        let carData = [];
-        let filteredData = [];
-        
         // Personalized recommendation system
         let personalizedChart = null;
+        
+        function toggleSlider(category) {
+            const slider = document.querySelector(`label[for="${category}Weight"]`).parentElement;
+            const isEnabled = document.getElementById(`enable${category.charAt(0).toUpperCase() + category.slice(1)}`).checked;
+            slider.style.opacity = isEnabled ? '1' : '0.3';
+        }
         
         function updateRecommendations() {
             // Update slider value displays
@@ -1101,13 +1242,13 @@
             document.getElementById('styleWeightValue').textContent = document.getElementById('styleWeight').value;
             document.getElementById('fuelWeightValue').textContent = document.getElementById('fuelWeight').value;
             
-            // Calculate weighted scores for all cars
+            // Calculate weighted scores for all cars, respecting toggles
             const weights = {
-                cost: parseFloat(document.getElementById('costWeight').value),
-                tco: parseFloat(document.getElementById('tcoWeight').value),
-                reliability: parseFloat(document.getElementById('reliabilityWeight').value),
-                style: parseFloat(document.getElementById('styleWeight').value),
-                fuel: parseFloat(document.getElementById('fuelWeight').value)
+                cost: document.getElementById('enableCost').checked ? parseFloat(document.getElementById('costWeight').value) : 0,
+                tco: document.getElementById('enableTCO').checked ? parseFloat(document.getElementById('tcoWeight').value) : 0,
+                reliability: document.getElementById('enableReliability').checked ? parseFloat(document.getElementById('reliabilityWeight').value) : 0,
+                style: document.getElementById('enableStyle').checked ? parseFloat(document.getElementById('styleWeight').value) : 0,
+                fuel: document.getElementById('enableFuel').checked ? parseFloat(document.getElementById('fuelWeight').value) : 0
             };
             
             // Skip if no data loaded yet
@@ -1127,20 +1268,26 @@
                 const scores = {
                     cost: (1 - (car.price / maxPrice)) * 10, // Lower price = higher score
                     tco: (1 - (car.tco / maxTCO)) * 10,      // Lower TCO = higher score
-                    reliability: car.reliability_score || car.reliability || 7,        // Already 0-10
-                    style: car.founder_credibility_score || car.coolness_score || 5,   // Use founder credibility score
-                    fuel: (1 - ((car.annual_fuel_cost || car.fuelCost || 1500) / 2000)) * 10        // Lower fuel cost = higher score
+                    reliability: car.reliability || 7,        // Already 0-10
+                    style: car.founderCredibility || 5,       // Use coolness score if available
+                    fuel: (1 - (car.fuelCost / 2000)) * 10        // Lower fuel cost = higher score
                 };
                 
-                // Calculate weighted score
+                // Calculate weighted score only for enabled categories
                 const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
-                const weightedScore = (
-                    scores.cost * weights.cost +
-                    scores.tco * weights.tco +
-                    scores.reliability * weights.reliability +
-                    scores.style * weights.style +
-                    scores.fuel * weights.fuel
-                ) / totalWeight;
+                let weightedScore;
+                if (totalWeight === 0) {
+                    // If no categories enabled, show 0 score
+                    weightedScore = 0;
+                } else {
+                    weightedScore = (
+                        scores.cost * weights.cost +
+                        scores.tco * weights.tco +
+                        scores.reliability * weights.reliability +
+                        scores.style * weights.style +
+                        scores.fuel * weights.fuel
+                    ) / totalWeight;
+                }
                 
                 return {
                     ...car,
@@ -1460,7 +1607,119 @@
         }
 
         // Initialize the recommendation engine
+        const recommendationEngine = new CarRecommendationEngine();
 
+        function updateRecommendations() {
+            if (!carData || carData.length === 0) return;
+            
+            const scoredCars = recommendationEngine.scoreAllCars(carData);
+            const top5 = scoredCars.slice(0, 5);
+            
+            displayRecommendations(top5);
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-container');
+            if (!container) return;
+            
+            container.innerHTML = recommendations.map((rec, index) => {
+                const car = rec.car;
+                const badge = index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                const credibilityBadge = rec.founderCredibility > 80 ? '💼' : rec.founderCredibility > 60 ? '📊' : '💰';
+                
+                return `
+                    <div class="recommendation-card rank-${index + 1}">
+                        <div class="rec-header">
+                            <span class="rank-badge">${badge}</span>
+                            <h3>${car.make || car.brand} ${car.model}</h3>
+                            <span class="credibility-badge">${credibilityBadge}</span>
+                        </div>
+                        <div class="rec-scores">
+                            <div class="score-item">
+                                <span class="score-label">Composite Score</span>
+                                <span class="score-value">${rec.compositeScore.toFixed(1)}/100</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">3-Year TCO</span>
+                                <span class="score-value">$${rec.totalCost.toLocaleString()}</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">Founder Cred</span>
+                                <span class="score-value">${rec.founderCredibility.toFixed(0)}/100</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">Market Position</span>
+                                <span class="score-value">${rec.marketPosition}</span>
+                            </div>
+                        </div>
+                        <div class="rec-explanation">
+                            <strong>${rec.smartExplanation}</strong>
+                        </div>
+                        <div class="rec-details">
+                            <span class="price">$${(car.price || 0).toLocaleString()}</span>
+                            <span class="year">${car.year}</span>
+                            <span class="fuel">${car.fuel_type || car.fuel}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Setup TCO parameter event listeners
+        function setupTCOParameterListeners() {
+            const yearsOwned = document.getElementById('yearsOwned');
+            const milesPerWeek = document.getElementById('milesPerWeek');
+            const enableFuelEfficiency = document.getElementById('enableFuelEfficiency');
+            const founderMode = document.getElementById('founderMode');
+            
+            if (yearsOwned) {
+                yearsOwned.addEventListener('input', function() {
+                    document.getElementById('yearsOwnedValue').textContent = this.value + ' years';
+                    recommendationEngine.updateParameters({ yearsOwned: parseInt(this.value) });
+                    updateRecommendations();
+                });
+            }
+            
+            if (milesPerWeek) {
+                milesPerWeek.addEventListener('input', function() {
+                    document.getElementById('milesPerWeekValue').textContent = this.value + ' miles/week';
+                    recommendationEngine.updateParameters({ milesPerWeek: parseInt(this.value) });
+                    updateRecommendations();
+                });
+            }
+            
+            if (enableFuelEfficiency) {
+                enableFuelEfficiency.addEventListener('change', function() {
+                    document.querySelector('.toggle-label').textContent = this.checked ? 'Enabled' : 'Disabled';
+                    recommendationEngine.updateParameters({ enableFuelEfficiencyFactor: this.checked });
+                    updateRecommendations();
+                });
+            }
+            
+            if (founderMode) {
+                founderMode.addEventListener('change', function() {
+                    const mode = this.value;
+                    let weights;
+                    
+                    switch(mode) {
+                        case 'bootstrap':
+                            weights = { tco: 0.50, founderCredibility: 0.15, reliability: 0.25, marketPosition: 0.05, opportunityCost: 0.05 };
+                            break;
+                        case 'fundraising':
+                            weights = { tco: 0.20, founderCredibility: 0.40, reliability: 0.15, marketPosition: 0.20, opportunityCost: 0.05 };
+                            break;
+                        case 'stealth':
+                            weights = { tco: 0.35, founderCredibility: 0.30, reliability: 0.20, marketPosition: 0.10, opportunityCost: 0.05 };
+                            break;
+                        default: // balanced
+                            weights = { tco: 0.30, founderCredibility: 0.25, reliability: 0.20, marketPosition: 0.15, opportunityCost: 0.10 };
+                    }
+                    
+                    recommendationEngine.updateParameters({ priorityWeights: weights });
+                    updateRecommendations();
+                });
+            }
+        }
 
         // Initialize recommendations when data loads
         function initializePersonalizedRecommendations() {
@@ -1820,6 +2079,7 @@
         Chart.defaults.scale.title.color = '#e2e8f0';
 
         // Car data loaded dynamically from CSV and live prices
+        let carData = [];
         let livePricesData = null;
         let lastUpdated = null;
         
@@ -1902,17 +2162,9 @@
                     fuelCost: parseInt(car.annual_fuel_cost),
                     maintenanceCost: parseInt(car.maintenance_annual),
                     insuranceCost: parseInt(car.insurance_annual),
-                    founderCredibility: parseInt(car.founder_credibility_score || car.coolness_score),
+                    founderCredibility: parseInt(car.coolness_score),
                     notes: car.notes,
-                    staticPrice: Math.round((parseInt(car.price_range_low) + parseInt(car.price_range_high)) / 2),
-                    // Add original CSV field names for compatibility
-                    reliability_score: parseInt(car.reliability_score),
-                    annual_fuel_cost: parseInt(car.annual_fuel_cost),
-                    maintenance_annual: parseInt(car.maintenance_annual),
-                    insurance_annual: parseInt(car.insurance_annual),
-                    founder_credibility_score: parseInt(car.founder_credibility_score || car.coolness_score),
-                    coolness_score: parseInt(car.coolness_score),
-                    depreciation_3yr_percent: parseInt(car.depreciation_3yr_percent)
+                    staticPrice: Math.round((parseInt(car.price_range_low) + parseInt(car.price_range_high)) / 2)
                 };
                 
                 // Check for live price data and update if available
@@ -1975,33 +2227,42 @@
         
         // Load live prices first, then CSV data
         async function loadAllData() {
-            console.log('Starting data load...');
-            
             // Try to load live prices first
-            try {
-                await loadLivePrices();
-                console.log('Live prices loaded');
-            } catch (e) {
-                console.log('Live prices failed:', e);
-            }
+            await loadLivePrices();
             
             // Then load CSV data
             try {
-                console.log('Fetching CSV...');
                 const response = await fetch('./comprehensive_car_analysis.csv');
                 const csvText = await response.text();
-                console.log('CSV fetched, parsing...');
                 carData = parseCSVData(csvText);
                 console.log(`Loaded ${carData.length} cars from CSV`);
                 
-                // Skip manual cars for now to debug
-                console.log('Skipping manual cars for debugging');
+                // Load manual cars from Supabase database first, then local storage as backup
+                const supabaseCars = await loadCarsFromSupabase();
+                const localCars = loadManualCarsFromStorage();
+                
+                // Merge cars from both sources, preferring Supabase over local
+                const allManualCars = [...supabaseCars];
+                localCars.forEach(localCar => {
+                    const exists = supabaseCars.some(supabaseCar => 
+                        supabaseCar.make === localCar.make && 
+                        supabaseCar.model === localCar.model && 
+                        supabaseCar.year === localCar.year
+                    );
+                    if (!exists) {
+                        allManualCars.push(localCar);
+                    }
+                });
+                
+                if (allManualCars.length > 0) {
+                    carData.push(...allManualCars);
+                    console.log(`Added ${allManualCars.length} family cars (${supabaseCars.length} from Supabase, ${localCars.length} from local storage)`);
+                }
                 
                 // Count how many have live data
                 const liveDataCount = carData.filter(car => car.livePriceData?.isLive).length;
                 console.log(`${liveDataCount} cars have live pricing data`);
                 
-                console.log('Calling initializeDashboard...');
                 initializeDashboard();
             } catch (error) {
                 console.error('Error loading CSV:', error);
@@ -2036,12 +2297,8 @@
             console.log('Dashboard initialized with CSV data');
         }
         
-        // Start data loading when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadAllData);
-        } else {
-            loadAllData();
-        }
+        // Start data loading
+        loadAllData();
         
         // Refresh function for button
         async function refreshData() {
@@ -2083,6 +2340,7 @@
             }
         }
 
+        let filteredData = [];
         let charts = {};
 
         // Function moved above to fix reference error
@@ -2974,6 +3232,7 @@
             createCategoryTCOChart();
             createReliabilityMaintenanceChart();
             createStyleTCOChart();
+            createTCOTimeChart();
             console.log('All charts created successfully');
         }
 
@@ -3102,6 +3361,144 @@
                         },
                         y: {
                             title: { display: true, text: '3-Year TCO ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTCOTimeChart() {
+            const ctx = document.getElementById('tcoTimeChart').getContext('2d');
+            if (charts.tcoTime) charts.tcoTime.destroy();
+            
+            // Get top 12 cars by lowest TCO (most relevant for founders)
+            const sortedByTCO = [...filteredData].sort((a, b) => a.tco - b.tco);
+            const topCars = sortedByTCO.slice(0, 12);
+            
+            // Generate time progression data (months 0, 6, 12, 18, 24, 30, 36)
+            const datasets = topCars.map((car, index) => {
+                const colors = [
+                    '#3182ce', '#38a169', '#dd6b20', '#e53e3e',
+                    '#805ad5', '#d69e2e', '#319795', '#c53030',
+                    '#4299e1', '#48bb78', '#ed8936', '#f56565'
+                ];
+                
+                // Brand-specific cost scaling factors based on 2024 research
+                const brandScaling = {
+                    'Tesla': { maintenance: 0.5, insurance: 1.4, dealer: 0.5, destination: 1.8 },
+                    'BMW': { maintenance: 1.9, insurance: 1.5, dealer: 1.6, destination: 2.2 },
+                    'Mercedes': { maintenance: 2.6, insurance: 1.6, dealer: 1.7, destination: 2.5 },
+                    'Audi': { maintenance: 2.0, insurance: 1.4, dealer: 1.5, destination: 2.0 },
+                    'Genesis': { maintenance: 1.1, insurance: 1.3, dealer: 1.2, destination: 1.5 },
+                    'Lexus': { maintenance: 0.8, insurance: 1.2, dealer: 1.3, destination: 1.4 },
+                    'Toyota': { maintenance: 0.7, insurance: 0.8, dealer: 1.0, destination: 1.0 },
+                    'Honda': { maintenance: 0.8, insurance: 0.7, dealer: 0.9, destination: 0.9 },
+                    'Hyundai': { maintenance: 0.9, insurance: 0.9, dealer: 0.8, destination: 0.8 },
+                    'Mazda': { maintenance: 0.9, insurance: 0.9, dealer: 0.9, destination: 0.9 },
+                    'Subaru': { maintenance: 1.0, insurance: 0.6, dealer: 0.8, destination: 0.9 },
+                    'Nissan': { maintenance: 1.0, insurance: 0.9, dealer: 0.9, destination: 0.9 },
+                    'Ford': { maintenance: 1.1, insurance: 1.0, dealer: 1.0, destination: 1.1 },
+                    'Chevrolet': { maintenance: 1.1, insurance: 1.0, dealer: 1.0, destination: 1.0 },
+                    'Porsche': { maintenance: 2.3, insurance: 1.8, dealer: 2.0, destination: 3.0 },
+                    'Maserati': { maintenance: 3.0, insurance: 2.5, dealer: 2.5, destination: 3.5 },
+                    'Volkswagen': { maintenance: 1.3, insurance: 0.8, dealer: 1.1, destination: 1.2 }
+                };
+                
+                const brand = car.make || car.brand || 'Toyota';
+                const scaling = brandScaling[brand] || brandScaling['Toyota'];
+                
+                const purchasePrice = car.price;
+                const annualFuel = car.annual_fuel_cost || car.fuelCost || 1500;
+                const annualMaintenance = car.maintenance_annual || car.maintenanceCost || 500;
+                const annualInsurance = car.insurance_annual || car.insuranceCost || 800;
+                
+                // Apply brand scaling
+                const scaledMaintenance = annualMaintenance * scaling.maintenance;
+                const scaledInsurance = annualInsurance * scaling.insurance;
+                
+                // Calculate realistic upfront fees (not full down payment)
+                const insuranceSetup = scaledInsurance / 12;
+                const registrationFees = purchasePrice * 0.01;
+                const destinationFee = (1000 * scaling.destination);
+                const dealerFees = Math.min(purchasePrice * (0.02 * scaling.dealer), 2000);
+                
+                const month0Cost = insuranceSetup + registrationFees + destinationFee + dealerFees;
+                
+                // Monthly operating costs (fuel + maintenance + insurance)
+                const monthlyOperating = (annualFuel + scaledMaintenance + scaledInsurance) / 12;
+                
+                // Create a more gradual progression to TCO
+                const operatingTotal3yr = monthlyOperating * 36;
+                const tcoWithoutOperating = car.tco - operatingTotal3yr; // This should be roughly purchase + depreciation
+                
+                return {
+                    label: car.name,
+                    data: [
+                        { x: 0, y: 0 },  // Start at zero
+                        { x: 6, y: monthlyOperating * 6 },
+                        { x: 12, y: monthlyOperating * 12 },
+                        { x: 18, y: monthlyOperating * 18 },
+                        { x: 24, y: monthlyOperating * 24 },
+                        { x: 30, y: monthlyOperating * 30 },
+                        { x: 36, y: operatingTotal3yr }  // Just operating costs, no purchase/depreciation
+                    ],
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '20',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                };
+            });
+            
+            charts.tcoTime = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Operating Costs Over Time - Top 12 Cars (Brand-Scaled)',
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: { usePointStyle: true, padding: 15, font: { size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return `Month ${tooltipItems[0].parsed.x}`;
+                                },
+                                label: function(context) {
+                                    return `${context.dataset.label}: $${context.parsed.y.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Months of Ownership', font: { weight: 'bold' } },
+                            min: 0, max: 36,
+                            ticks: {
+                                stepSize: 6,
+                                callback: function(value) {
+                                    return value === 0 ? 'Purchase' : `${value}mo`;
+                                }
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: 'Cumulative Operating Costs ($)', font: { weight: 'bold' } },
                             ticks: {
                                 callback: function(value) {
                                     return '$' + (value / 1000).toFixed(0) + 'k';
@@ -3915,7 +4312,8 @@
             // Color toggle event listener
             document.getElementById('colorMode').addEventListener('change', updateDashboard);
             
-            // TCO Parameter event listeners removed (simplified recommendation system)
+            // TCO Parameter event listeners
+            setupTCOParameterListeners();
 
             // Add loading states
             [document.getElementById('budgetFilter'), document.getElementById('fuelFilter'), 

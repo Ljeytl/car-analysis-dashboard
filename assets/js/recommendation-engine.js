@@ -1,6 +1,57 @@
 // Personalized recommendation system
 let personalizedChart = null;
 
+// Category enable/disable state
+let categoryEnabled = {
+    cost: true,
+    tco: true,
+    reliability: true,
+    style: true,
+    fuel: true
+};
+
+function toggleCategory(category) {
+    // Map category names to checkbox IDs
+    const checkboxIds = {
+        cost: 'enableCost',
+        tco: 'enableTCO', 
+        reliability: 'enableReliability',
+        style: 'enableStyle',
+        fuel: 'enableFuel'
+    };
+    
+    const checkbox = document.getElementById(checkboxIds[category]);
+    if (!checkbox) return;
+    
+    // Update the categoryEnabled state
+    categoryEnabled[category] = checkbox.checked;
+    
+    // Map category names to weight input IDs and find parent slider containers
+    const weightInputIds = {
+        cost: 'costWeight',
+        tco: 'tcoWeight',
+        reliability: 'reliabilityWeight',
+        style: 'styleWeight',
+        fuel: 'fuelWeight'
+    };
+    
+    const weightInput = document.getElementById(weightInputIds[category]);
+    if (weightInput) {
+        // Find the parent preference-slider div
+        const sliderContainer = weightInput.closest('.preference-slider');
+        if (sliderContainer) {
+            if (categoryEnabled[category]) {
+                sliderContainer.style.display = 'flex';
+                sliderContainer.style.opacity = '1';
+            } else {
+                sliderContainer.style.display = 'none';
+            }
+        }
+    }
+    
+    console.log(`Toggled ${category}: ${categoryEnabled[category]}`);
+}
+
 function updateRecommendations() {
     // Update slider value displays
     document.getElementById('costWeightValue').textContent = document.getElementById('costWeight').value;
@@ -9,14 +60,40 @@ function updateRecommendations() {
     document.getElementById('styleWeightValue').textContent = document.getElementById('styleWeight').value;
     document.getElementById('fuelWeightValue').textContent = document.getElementById('fuelWeight').value;
     
-    // Calculate weighted scores for all cars
+    // Sync categoryEnabled with actual checkbox states
+    categoryEnabled.cost = document.getElementById('enableCost').checked;
+    categoryEnabled.tco = document.getElementById('enableTCO').checked;
+    categoryEnabled.reliability = document.getElementById('enableReliability').checked;
+    categoryEnabled.style = document.getElementById('enableStyle').checked;
+    categoryEnabled.fuel = document.getElementById('enableFuel').checked;
+    
+    // Debug: Log current category states
+    console.log('Category states:', categoryEnabled);
+    
+    // Get weights, applying 0 for disabled categories
     const weights = {
-        cost: parseFloat(document.getElementById('costWeight').value),
-        tco: parseFloat(document.getElementById('tcoWeight').value),
-        reliability: parseFloat(document.getElementById('reliabilityWeight').value),
-        style: parseFloat(document.getElementById('styleWeight').value),
-        fuel: parseFloat(document.getElementById('fuelWeight').value)
+        cost: categoryEnabled.cost ? parseFloat(document.getElementById('costWeight').value) : 0,
+        tco: categoryEnabled.tco ? parseFloat(document.getElementById('tcoWeight').value) : 0,
+        reliability: categoryEnabled.reliability ? parseFloat(document.getElementById('reliabilityWeight').value) : 0,
+        style: categoryEnabled.style ? parseFloat(document.getElementById('styleWeight').value) : 0,
+        fuel: categoryEnabled.fuel ? parseFloat(document.getElementById('fuelWeight').value) : 0
     };
+    
+    // Debug: Log calculated weights
+    console.log('Calculated weights:', weights);
+    
+    // Update weights display
+    const activeWeights = Object.entries(weights)
+        .filter(([_, weight]) => weight > 0)
+        .map(([category, weight]) => {
+            const categoryNames = {cost: 'Price', tco: 'TCO', reliability: 'Reliability', style: 'Credibility', fuel: 'Fuel'};
+            return `${categoryNames[category]}: ${weight}`;
+        });
+    
+    const weightsDisplay = document.getElementById('weightsDisplay');
+    if (weightsDisplay) {
+        weightsDisplay.textContent = activeWeights.length > 0 ? activeWeights.join(', ') : 'None selected';
+    }
     
     // Skip if no data loaded yet
     if (!carData || carData.length === 0) return;
@@ -27,28 +104,50 @@ function updateRecommendations() {
 }
 
 function calculateWeightedScores(cars, weights) {
+    // Calculate min/max values for proper scaling
+    const priceValues = cars.map(c => c.price || c.final_price_low || 25000);
+    const tcoValues = cars.map(c => c.tco_3yr_low || c.tco || 20000);
+    const fuelValues = cars.map(c => c.annual_fuel_cost || c.fuelCost || 1000);
+    
+    const minPrice = Math.min(...priceValues);
+    const maxPrice = Math.max(...priceValues);
+    const minTCO = Math.min(...tcoValues);
+    const maxTCO = Math.max(...tcoValues);
+    const minFuel = Math.min(...fuelValues);
+    const maxFuel = Math.max(...fuelValues);
+    
     return cars.map(car => {
-        // Normalize scores to 0-10 scale
-        const maxPrice = Math.max(...cars.map(c => c.price));
-        const maxTCO = Math.max(...cars.map(c => c.tco));
+        const carPrice = car.price || car.final_price_low || 25000;
+        const carTCO = car.tco_3yr_low || car.tco || 20000;
+        const carFuel = car.annual_fuel_cost || car.fuelCost || 1000;
         
+        // Properly scaled scores (0-10, lower cost = higher score)
         const scores = {
-            cost: (1 - (car.price / maxPrice)) * 10, // Lower price = higher score
-            tco: (1 - (car.tco / maxTCO)) * 10,      // Lower TCO = higher score
-            reliability: car.reliability || 7,        // Already 0-10
-            style: car.founderCredibility || 5,       // Use coolness score if available
-            fuel: (1 - (car.fuelCost / 2000)) * 10        // Lower fuel cost = higher score
+            cost: maxPrice > minPrice ? 10 * (1 - (carPrice - minPrice) / (maxPrice - minPrice)) : 5,
+            tco: maxTCO > minTCO ? 10 * (1 - (carTCO - minTCO) / (maxTCO - minTCO)) : 5,
+            reliability: car.reliability_score || car.reliability || 7,
+            style: car.founder_credibility_score || car.founderCredibility || car.coolness_score || 5,
+            fuel: maxFuel > minFuel ? 10 * (1 - (carFuel - minFuel) / (maxFuel - minFuel)) : 5
         };
         
-        // Calculate weighted score
-        const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
-        const weightedScore = (
-            scores.cost * weights.cost +
-            scores.tco * weights.tco +
-            scores.reliability * weights.reliability +
-            scores.style * weights.style +
-            scores.fuel * weights.fuel
-        ) / totalWeight;
+        // Calculate weighted score only for enabled categories
+        const activeWeights = Object.entries(weights).filter(([_, weight]) => weight > 0);
+        const totalWeight = activeWeights.reduce((sum, [_, weight]) => sum + weight, 0);
+        
+        if (totalWeight === 0) {
+            return {
+                ...car,
+                scores,
+                weightedScore: 0,
+                recommendation: "No categories enabled"
+            };
+        }
+        
+        // Only use scores for enabled categories
+        const weightedScore = activeWeights.reduce((sum, [category, weight]) => {
+            const categoryScore = scores[category] || 0;
+            return sum + (categoryScore * weight);
+        }, 0) / totalWeight;
         
         return {
             ...car,
@@ -110,9 +209,13 @@ function updatePersonalizedChart(topCars) {
                             return [
                                 `Weighted Score: ${car.weightedScore}/10`,
                                 `Price: $${car.price.toLocaleString()}`,
-                                `TCO: $${car.tco.toLocaleString()}`,
-                                `APR: ${car.estimatedAPR?.toFixed(1)}% (Est. $${car.financingCost?.toLocaleString()} financing)`,
-                                `Reliability: ${car.reliability}/10`
+                                `TCO: $${car.tco || car.tco_3yr_low || 'N/A'}`,
+                                `Category Scores:`,
+                                `💰 Price: ${car.scores?.cost?.toFixed(1) || 'N/A'}/10`,
+                                `📊 TCO: ${car.scores?.tco?.toFixed(1) || 'N/A'}/10`,
+                                `🔧 Reliability: ${car.scores?.reliability?.toFixed(1) || 'N/A'}/10`,
+                                `✨ Credibility: ${car.scores?.style?.toFixed(1) || 'N/A'}/10`,
+                                `⛽ Fuel: ${car.scores?.fuel?.toFixed(1) || 'N/A'}/10`
                             ];
                         }
                     }
@@ -154,7 +257,15 @@ function updateRecommendationsList(topCars) {
                 </span>
             </div>
             <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px;">
-                💰 $${car.price.toLocaleString()} | 📊 $${car.tco.toLocaleString()} TCO | 🔧 ${car.reliability}/10
+                💰 $${car.price.toLocaleString()} | 📊 $${car.tco || car.tco_3yr_low || 'N/A'} TCO | 🔧 ${car.reliability}/10
+            </div>
+            <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 8px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px;">
+                <strong>Category Scores:</strong><br>
+                💰 Price: <strong>${car.scores?.cost?.toFixed(1) || 'N/A'}/10</strong> | 
+                📊 TCO: <strong>${car.scores?.tco?.toFixed(1) || 'N/A'}/10</strong> | 
+                🔧 Reliability: <strong>${car.scores?.reliability?.toFixed(1) || 'N/A'}/10</strong><br>
+                ✨ Credibility: <strong>${car.scores?.style?.toFixed(1) || 'N/A'}/10</strong> | 
+                ⛽ Fuel: <strong>${car.scores?.fuel?.toFixed(1) || 'N/A'}/10</strong>
             </div>
             <div style="font-size: 0.85em; opacity: 0.8; font-style: italic;">
                 ${car.recommendation}
@@ -370,14 +481,7 @@ class CarRecommendationEngine {
 // Initialize the recommendation engine
 const recommendationEngine = new CarRecommendationEngine();
 
-function updateRecommendations() {
-    if (!carData || carData.length === 0) return;
-    
-    const scoredCars = recommendationEngine.scoreAllCars(carData);
-    const top5 = scoredCars.slice(0, 5);
-    
-    displayRecommendations(top5);
-}
+// Removed duplicate function - using the main one above
 
 function displayRecommendations(recommendations) {
     const container = document.getElementById('recommendations-container');
