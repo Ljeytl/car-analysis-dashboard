@@ -61,6 +61,7 @@ export class UIControls {
         this.dataLoader.applyFilters(filters);
         this.updateCarTable();
         this.updateRecommendations();
+        this.updateAnalysisCharts();
     }
 
     // Update recommendations based on user preferences
@@ -183,6 +184,7 @@ export class UIControls {
             this.populateBrandFilter();
             this.updateCarTable();
             this.updateRecommendations();
+            this.updateAnalysisCharts();
         } catch (error) {
             console.error('Error refreshing data:', error);
         } finally {
@@ -193,11 +195,20 @@ export class UIControls {
         }
     }
 
+    // Update analysis charts with current filtered data
+    updateAnalysisCharts() {
+        const filteredData = this.dataLoader.getFilteredData();
+        if (filteredData && filteredData.length > 0) {
+            this.chartsManager.updateAllCharts(filteredData);
+        }
+    }
+
     // Initialize UI after data is loaded
     async initialize() {
         await this.dataLoader.loadData();
         this.populateBrandFilter();
         this.updateCarTable();
         this.updateRecommendations();
+        this.updateAnalysisCharts();
     }
 }

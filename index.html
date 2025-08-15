@@ -144,6 +144,52 @@
             </div>
         </div>
 
+        <!-- Analysis Charts Section -->
+        <div class="section">
+            <h3 class="section-title">📈 Market Analysis Charts</h3>
+            <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
+                Comprehensive analysis of the car market with interactive visualizations:
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: var(--spacing-lg);">
+                <!-- TCO by Brand Chart -->
+                <div class="chart-container">
+                    <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">TCO by Brand</h4>
+                    <canvas id="tcoBrandChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- TCO vs Reliability Chart -->
+                <div class="chart-container">
+                    <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">TCO vs Reliability</h4>
+                    <canvas id="tcoReliabilityChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Depreciation Analysis Chart -->
+                <div class="chart-container">
+                    <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">Depreciation by Brand</h4>
+                    <canvas id="depreciationChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Fuel Type Distribution Chart -->
+                <div class="chart-container">
+                    <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">Fuel Type Distribution</h4>
+                    <canvas id="fuelTypeChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- TCO Distribution Chart -->
+                <div class="chart-container">
+                    <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">TCO Distribution</h4>
+                    <canvas id="tcoDistributionChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Fuel Cost vs TCO Chart -->
+                <div class="chart-container">
+                    <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">Fuel Cost vs TCO</h4>
+                    <canvas id="fuelCostChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Data Table Section -->
         <div class="section">
             <h3 class="section-title">📊 Complete Car Database</h3>
